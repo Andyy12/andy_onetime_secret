@@ -363,13 +363,14 @@ describe('MastHead', () => {
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
       expect(img.attributes('src')).toBe('/img/brand.svg');
-      // Without prominent=true, unauthenticated users get default 48px (h-12)
-      expect(img.classes()).toContain('h-12');
+      // Without prominent=true, an install-wide horizontal logo renders at the
+      // GoDatalize header size: 28px tall (h-7), for every auth state.
+      expect(img.classes()).toContain('h-7');
       expect(img.classes()).not.toContain('h-24');
       expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      expect(img.attributes('height')).toBe('48');
+      expect(img.attributes('height')).toBe('28');
     });
 
     it('does not apply BRAND_LOGO_ALT to a tenant logo that outranks the install logo', async () => {

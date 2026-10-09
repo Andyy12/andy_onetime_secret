@@ -508,6 +508,18 @@
     "text": "Appearance",
     "content_hash": "3907fa7f"
   },
+  "web.COMMON.theme_dark": {
+    "text": "Dark",
+    "content_hash": "60acc53f"
+  },
+  "web.COMMON.theme_light": {
+    "text": "Light",
+    "content_hash": "dbcd5e7b"
+  },
+  "web.COMMON.theme_auto": {
+    "text": "Automatic",
+    "content_hash": "d461a493"
+  },
   "web.COMMON.done": {
     "text": "Done",
     "content_hash": "11a6767d"

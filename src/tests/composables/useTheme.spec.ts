@@ -28,6 +28,25 @@ describe('useTheme', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
+  it('defaults to dark when no preference is stored (GoDatalize brand)', async () => {
+    const { initializeTheme, isDarkMode, themePreference } = useTheme();
+    initializeTheme();
+    await nextTick();
+    expect(themePreference.value).toBe('dark');
+    expect(isDarkMode.value).toBe(true);
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+  });
+
+  it('honours a stored light preference', async () => {
+    localStorage.setItem('restMode', 'false');
+    const { initializeTheme, isDarkMode, themePreference } = useTheme();
+    initializeTheme();
+    await nextTick();
+    expect(themePreference.value).toBe('light');
+    expect(isDarkMode.value).toBe(false);
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+
   it('toggles dark mode', async () => {
     const { toggleDarkMode, isDarkMode, initializeTheme } = useTheme();
     initializeTheme();
@@ -35,15 +54,33 @@ describe('useTheme', () => {
 
     toggleDarkMode();
     await nextTick();
-    expect(isDarkMode.value).toBe(true);
-    expect(localStorage.getItem('restMode')).toBe('true');
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
-
-    toggleDarkMode();
-    await nextTick();
     expect(isDarkMode.value).toBe(false);
     expect(localStorage.getItem('restMode')).toBe('false');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
+
+    toggleDarkMode();
+    await nextTick();
+    expect(isDarkMode.value).toBe(true);
+    expect(localStorage.getItem('restMode')).toBe('true');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+  });
+
+  it('auto follows the operating system and persists as "auto"', async () => {
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+    try {
+      const { setThemePreference, isDarkMode, themePreference } = useTheme();
+      setThemePreference('auto');
+      await nextTick();
+      expect(themePreference.value).toBe('auto');
+      expect(localStorage.getItem('restMode')).toBe('auto');
+      expect(isDarkMode.value).toBe(false);
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it('calls theme change listeners on toggle', async () => {
@@ -51,13 +88,14 @@ describe('useTheme', () => {
     const listener = vi.fn();
     onThemeChange(listener);
 
-    toggleDarkMode();
-    await nextTick();
-    expect(listener).toHaveBeenCalledWith(true);
-
+    // Starts dark (brand default), so the first toggle goes light.
     toggleDarkMode();
     await nextTick();
     expect(listener).toHaveBeenCalledWith(false);
+
+    toggleDarkMode();
+    await nextTick();
+    expect(listener).toHaveBeenCalledWith(true);
   });
 
   it('removes theme change listener', async () => {

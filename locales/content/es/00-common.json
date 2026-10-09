@@ -484,6 +484,18 @@
     "text": "Apariencia",
     "source_hash": "3907fa7f"
   },
+  "web.COMMON.theme_dark": {
+    "text": "Oscuro",
+    "source_hash": "60acc53f"
+  },
+  "web.COMMON.theme_light": {
+    "text": "Claro",
+    "source_hash": "dbcd5e7b"
+  },
+  "web.COMMON.theme_auto": {
+    "text": "Automático",
+    "source_hash": "d461a493"
+  },
   "web.COMMON.done": {
     "text": "Listo",
     "source_hash": "11a6767d"

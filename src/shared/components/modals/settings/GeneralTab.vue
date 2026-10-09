@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
-import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
+import { useTheme, type ThemePreference } from '@/shared/composables/useTheme';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
@@ -25,16 +25,25 @@ const handleMenuToggled = () => {
   emit('menuToggled');
 };
 
-const handleThemeChange = async (_isDark: boolean) => {
-  isLoading.value = true;
-  try {
-    // TODO: Persist theme preference to user settings
-  } catch (error) {
-    console.error('Error changing theme:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+const { themePreference, setThemePreference, initializeTheme } = useTheme();
+initializeTheme();
+
+// GoDatalize brand §4.5: Oscuro (default) · Claro · Automático (follows the OS).
+const themeOptions: {
+  value: ThemePreference;
+  labelKey: string;
+  collection: string;
+  icon: string;
+}[] = [
+  { value: 'dark', labelKey: 'web.COMMON.theme_dark', collection: 'ph', icon: 'moon' },
+  { value: 'light', labelKey: 'web.COMMON.theme_light', collection: 'ph', icon: 'sun' },
+  {
+    value: 'auto',
+    labelKey: 'web.COMMON.theme_auto',
+    collection: 'heroicons',
+    icon: 'computer-desktop-solid',
+  },
+];
 </script>
 
 <template>
@@ -60,11 +69,33 @@ const handleThemeChange = async (_isDark: boolean) => {
               {{ t('web.COMMON.theme') }}
             </span>
           </div>
-          <ThemeToggle
-            @theme-changed="handleThemeChange"
-            :disabled="isLoading"
-            :aria-busy="isLoading"
-            class="shrink-0" />
+          <div
+            role="radiogroup"
+            :aria-label="t('web.COMMON.theme')"
+            data-testid="theme-preference"
+            class="inline-flex shrink-0 rounded-lg border border-gray-200 p-0.5 dark:border-gray-700">
+            <button
+              v-for="option in themeOptions"
+              :key="option.value"
+              type="button"
+              role="radio"
+              :aria-checked="themePreference === option.value"
+              :data-testid="`theme-option-${option.value}`"
+              :class="[
+                'inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors',
+                themePreference === option.value
+                  ? 'bg-brand-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
+              ]"
+              @click="setThemePreference(option.value)">
+              <OIcon
+                :collection="option.collection"
+                :name="option.icon"
+                class="size-4"
+                aria-hidden="true" />
+              {{ t(option.labelKey) }}
+            </button>
+          </div>
         </div>
       </div>
     </section>

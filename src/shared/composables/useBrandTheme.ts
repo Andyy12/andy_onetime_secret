@@ -59,10 +59,21 @@ function normalize(hex: string | null | undefined): string | null {
   return hex.toLowerCase().replace('#', '');
 }
 
+/**
+ * GoDatalize install color (teal profundo, public/branding/godatalize/brand.yaml).
+ * Its full palette — teal brand scale plus the amber "Decisión" complement —
+ * is hand-tuned and compiled into style.css, so it must not be replaced by the
+ * generated palette (whose complement would be a 180° hue rotation, not amber).
+ */
+const GODATALIZE_PRIMARY = '#0A7F6C';
+
 function isNeutralColor(hex: string | null | undefined): boolean {
   const normalized = normalize(hex);
   if (!normalized) return true;
-  return normalized === normalize(NEUTRAL_BRAND_DEFAULTS.primary_color);
+  return (
+    normalized === normalize(NEUTRAL_BRAND_DEFAULTS.primary_color) ||
+    normalized === normalize(GODATALIZE_PRIMARY)
+  );
 }
 
 /** Remove the 44 primary-palette overrides so @theme defaults apply. Leaves

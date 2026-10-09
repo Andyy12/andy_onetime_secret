@@ -17,9 +17,11 @@
     <script nonce="{{app.nonce}}">
       (() => {
         var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
-        var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
+        var storedMode = (typeof localStorage !== 'undefined') ? localStorage.getItem('restMode') : null;
+        // GoDatalize: dark is the default theme; 'auto' follows the OS.
+        var followsSystem = storedMode === 'auto';
         var humanElement = document.documentElement;
-        var nightVision = 'rgb(17 24 39)';
+        var nightVision = '#0a0e14';
         var dayVision = '#ffffff';
 
         var visualSettings = {
@@ -37,12 +39,12 @@
           }
         };
 
-        // When the user has toggled dark mode in the app, honour that
-        // stored preference immediately (before Vue mounts) to avoid a
-        // flash of the wrong theme. Fall back to OS preference otherwise.
-        var effectiveMode = hasHumanOverride
-          ? localStorage.getItem('restMode') === 'true'
-          : isRestMode;
+        // Apply the stored preference before Vue mounts to avoid a flash of
+        // the wrong theme: 'false' = light, 'auto' = OS preference, anything
+        // else (including no preference) = dark.
+        var effectiveMode = storedMode === 'false'
+          ? false
+          : (followsSystem ? isRestMode : true);
         var config = visualSettings[effectiveMode];
         window.enjoyTheVue = false; // Vue will reconcile on mount
 
@@ -57,9 +59,9 @@
         // Initial adjustment
         adjustVisualEnvironment();
 
-        // Re-adjust on system color scheme change (only when no stored override)
+        // Re-adjust on system color scheme change (only in 'auto' mode)
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-          if (hasHumanOverride) return;
+          if (!followsSystem) return;
           isRestMode = e.matches;
           config = visualSettings[isRestMode];
           adjustVisualEnvironment();

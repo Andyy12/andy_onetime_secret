@@ -318,14 +318,23 @@ describe('identityStore primaryColor resolution', () => {
       expect(match![1].toUpperCase()).toBe(CANONICAL);
     });
 
-    it('CSS @theme --color-brand-500 seed matches TS constant', () => {
-      const css = readFileSync(
-        resolve(process.cwd(), 'src/assets/style.css'),
-        'utf-8',
+    // GoDatalize fork: the compiled @theme palette is the GoDatalize teal, not
+    // the neutral blue. Guard the three places that must agree on it: the
+    // compiled brand-600 in style.css, the pack's brand.yaml primary_color, and
+    // GODATALIZE_PRIMARY in useBrandTheme.ts (which skips runtime injection).
+    it('CSS @theme --color-brand-600 matches the GoDatalize primary everywhere', () => {
+      const read = (p: string) => readFileSync(resolve(process.cwd(), p), 'utf-8');
+      const css = read('src/assets/style.css').match(/--color-brand-600:\s*(#[0-9A-Fa-f]{6})/);
+      const yaml = read('public/branding/godatalize/brand.yaml').match(
+        /^primary_color:\s*"(#[0-9A-Fa-f]{6})"/m,
       );
-      const match = css.match(/--color-brand-500:\s*(#[0-9A-Fa-f]{6})/);
-      expect(match).not.toBeNull();
-      expect(match![1].toUpperCase()).toBe(CANONICAL);
+      const ts = read('src/shared/composables/useBrandTheme.ts').match(
+        /GODATALIZE_PRIMARY\s*=\s*'(#[0-9A-Fa-f]{6})'/,
+      );
+      expect(css && yaml && ts).toBeTruthy();
+      expect(css![1].toUpperCase()).toBe('#0A7F6C');
+      expect(yaml![1].toUpperCase()).toBe('#0A7F6C');
+      expect(ts![1].toUpperCase()).toBe('#0A7F6C');
     });
   });
 });

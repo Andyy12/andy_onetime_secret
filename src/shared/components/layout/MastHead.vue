@@ -120,6 +120,7 @@
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
     if (isProminentLogo.value) return isUserPresent.value ? 80 : 160;
+    if (isCustomStaticLogo.value) return 28;
     return isUserPresent.value ? 40 : 48;
   };
   // Priority:
@@ -177,6 +178,9 @@
   const imgHeightClass = computed(() => {
     if (hasExplicitImgSize.value) return null;
     if (isProminentLogo.value) return isUserPresent.value ? 'h-20' : 'h-24 sm:h-40';
+    // Install-wide horizontal logo (GoDatalize co-brand): symbol 28px tall
+    // next to the wordmark, per the brand's header rule.
+    if (isCustomStaticLogo.value) return 'h-7';
     return isUserPresent.value ? 'h-10' : 'h-12';
   });
 
@@ -268,7 +272,9 @@
             :href="logoConfig.href"
             data-testid="header-logo-link"
             class="flex items-center gap-3"
-            :aria-label="logoConfig.alt">
+            :aria-label="logoConfig.showSiteName && isCustomStaticLogo
+              ? `${logoConfig.alt} ${logoConfig.siteName}`
+              : logoConfig.alt">
             <!-- Light/dark img pair + dark-mode swap live in BrandMark; the
                  fallback slot stays empty because logoConfig.url is always a
                  real asset URL here (the sentinel takes the component branch
@@ -281,8 +287,20 @@
               :img-class="['w-auto object-contain transition-transform', imgHeightClass]"
               :img-style="imgInlineStyle"
               :height="logoConfig.size" />
+            <!-- Co-brand (GoDatalize §2): with an install logo, the system name
+                 sits after a 1px divider in the display face, muted. -->
             <span
-              v-if="logoConfig.showSiteName"
+              v-if="logoConfig.showSiteName && isCustomStaticLogo"
+              class="flex items-center gap-3">
+              <span
+                class="h-6 w-px bg-gray-200 dark:bg-gray-700"
+                aria-hidden="true"></span>
+              <span class="font-brand text-lg font-semibold leading-tight text-gray-600 dark:text-gray-400">
+                {{ logoConfig.siteName }}
+              </span>
+            </span>
+            <span
+              v-else-if="logoConfig.showSiteName"
               class="font-brand text-lg font-bold leading-tight">
               {{ logoConfig.siteName }}
             </span>

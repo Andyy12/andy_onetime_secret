@@ -141,7 +141,9 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-ARG BRAND_PACK=
+# GoDatalize fork: bake the godatalize brand pack by default (override with
+# --build-arg BRAND_PACK=default for the neutral pack).
+ARG BRAND_PACK=godatalize
 RUN set -eux && \
     if [ -n "${BRAND_PACK}" ] && [ "${BRAND_PACK}" != "default" ]; then \
       case "${BRAND_PACK}" in \

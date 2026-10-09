@@ -1,0 +1,43 @@
+# public/branding/godatalize/brand.yaml
+#
+# Brand pack manifest — GoDatalize · Secretos.
+#
+# "Secretos" is a GoDatalize system: the GoDatalize logo is used as-is and the
+# system name goes next to it as TEXT (brand doc §2), never inside the logo.
+# See docs/branding/godatalize.md for the full identity and what is approved
+# vs. proposed.
+#
+# Activate it in one of two ways:
+#   - bake into the image:   docker build --build-arg BRAND_PACK=godatalize .
+#                            (the Dockerfile default already does this)
+#   - select at runtime:     BRAND_PACK=godatalize
+#
+# Precedence (lowest to highest):
+#     built-in defaults  <  pack brand.yaml  <  operator `brand:` config  <  BRAND_* env
+
+# Core identity ---------------------------------------------------------------
+# Teal profundo (approved "teal on light backgrounds"). The frontend treats this
+# value as a compiled palette (teal + amber, src/assets/style.css) instead of
+# generating one — see GODATALIZE_PRIMARY in useBrandTheme.ts. Emails use it for
+# buttons/links on white, where it meets AA (4.9:1 with white text).
+primary_color: "#0A7F6C"
+product_name: "Secretos"
+signature_name: "Equipo GoDatalize"
+# product_domain: "secretos.godatalize.com"   # set to the real public domain
+# support_email: "soporte@godatalize.com"     # set to the real support address
+
+# Style -----------------------------------------------------------------------
+corner_style: "rounded"
+font_family: "sans"
+
+# MFA -------------------------------------------------------------------------
+totp_issuer: "GoDatalize Secretos"
+
+# Logo ------------------------------------------------------------------------
+# Horizontal logo, palette `claro` for the light theme and `oscuro` for the
+# dark theme (brand doc §4.5). Served from this pack at stable root URLs.
+# Root-relative, so emails fall back to a text header; set BRAND_LOGO_URL to an
+# absolute URL to brand emails too.
+logo_url: "/brand-logo.svg"
+logo_dark_url: "/brand-logo-dark.svg"
+logo_alt: "GoDatalize"
