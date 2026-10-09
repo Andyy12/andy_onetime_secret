@@ -113,7 +113,7 @@ const schema = z.object({
     </style>
   </head>
 
-  <body class="bg-white font-serif text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <body class="bg-white font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100">
     <div class="error-container">
       <div class="error-card">
         <div class="error-code">500</div>

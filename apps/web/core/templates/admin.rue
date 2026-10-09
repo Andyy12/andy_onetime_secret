@@ -71,7 +71,7 @@
     </script>
     {{> partials/head}}
   </head>
-  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <body class="font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div id="app">
       <!-- Fallback: Vue replaces this on mount. If Vue fails to load, this remains visible.
            The two loader pieces can be shown or hidden independently by flipping the
