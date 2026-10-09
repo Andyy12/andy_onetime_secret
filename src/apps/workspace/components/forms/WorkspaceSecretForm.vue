@@ -16,9 +16,11 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SecretTitleInput from '@/shared/components/forms/SecretTitleInput.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+  import { useReceiptTitle } from '@/shared/composables/useReceiptTitle';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { loggingService } from '@/services/logging.service';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -100,6 +102,10 @@
     return 'bg-red-400 dark:bg-red-500';
   });
 
+  // Optional owner-only title, saved as the receipt memo (see useReceiptTitle)
+  const receiptTitle = useReceiptTitle();
+  const { title: secretTitle } = receiptTitle;
+
   // Secret concealer with workspace mode behavior
   const { form, validation, operations, isSubmitting, submit } =
     useSecretConcealer({
@@ -130,9 +136,13 @@
           hasPassphrase: !!form.passphrase,
           ttl: form.ttl as number,
           createdAt: Date.now(),
+          ...(receiptTitle.normalizedTitle.value && { memo: receiptTitle.normalizedTitle.value }),
         };
         // Add the message to the store
         localReceiptStore.addReceipt(newMessage);
+        // Save the title on the account's receipt before the history refreshes
+        await receiptTitle.persist(newMessage.receiptExtid);
+        receiptTitle.reset();
 
         // Preserve TTL before reset (sticky setting)
         const preservedTtl = form.ttl;
@@ -326,6 +336,13 @@
               </div>
             </div>
           </div>
+
+          <!-- Title Field (owner-only, saved as the receipt memo) -->
+          <SecretTitleInput
+            v-model="secretTitle"
+            :corner-class="cornerClass"
+            :disabled="isSubmitting"
+            class="mt-4" />
 
           <!-- Recipient Field (create-link mode only) -->
           <div

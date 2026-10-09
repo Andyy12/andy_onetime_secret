@@ -4,9 +4,11 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SecretTitleInput from '@/shared/components/forms/SecretTitleInput.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+  import { useReceiptTitle } from '@/shared/composables/useReceiptTitle';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
@@ -91,6 +93,10 @@
   const recipientId = computed(() => `recipient-${uniqueId.value}`);
   const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
 
+  // Optional owner-only title, saved as the receipt memo (see useReceiptTitle)
+  const receiptTitle = useReceiptTitle();
+  const { title: secretTitle } = receiptTitle;
+
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
       if (!response) throw 'Response is missing';
@@ -104,9 +110,12 @@
         hasPassphrase: !!form.passphrase,
         ttl: form.ttl as number,
         createdAt: Date.now(),
+        ...(receiptTitle.normalizedTitle.value && { memo: receiptTitle.normalizedTitle.value }),
       };
       // Add the message to the store
       localReceiptStore.addReceipt(newMessage);
+      await receiptTitle.persist(newMessage.receiptExtid);
+      receiptTitle.reset();
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
@@ -422,6 +431,13 @@
               </div>
             </div>
           </div>
+
+          <!-- Title Field (owner-only, saved as the receipt memo) -->
+          <SecretTitleInput
+            v-model="secretTitle"
+            :corner-class="cornerClass"
+            :disabled="isSubmitting"
+            class="mt-6" />
 
           <!-- Recipient Field -->
           <div
