@@ -1,20 +1,20 @@
 <%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
 <!-- Heading -->
-<div style="font-family: Helvetica, Arial, sans-serif; font-size: 22px; line-height: 30px; color: #374550; margin: 0 0 6px 0;">
+<div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 22px; line-height: 30px; color: #0a0e14; margin: 0 0 6px 0;">
   <%= h(t('email.expiration_warning.expires_in', time_remaining: time_remaining)) %>
 </div>
-<p style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; color: #5a6672; margin: 0 0 16px 0;">
+<p style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; color: #556277; margin: 0 0 16px 0;">
   <%= t('email.expiration_warning.view_before_gone') %>
 </p>
 
 <!-- Secret link (the visible text is the exact destination) -->
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 20px 0;">
   <tr>
-    <td bgcolor="#f7f8fa" style="background-color: #f7f8fa; border: 1px solid #e3e7eb; border-radius: 8px; padding: 16px 18px;">
-      <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #97a1ab; margin: 0 0 8px 0;">
+    <td bgcolor="#f5f7fa" style="background-color: #f5f7fa; border: 1px solid #d5dce5; border-radius: 8px; padding: 16px 18px;">
+      <div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #687489; margin: 0 0 8px 0;">
         <%= t('email.common.secret_link_label') %>
       </div>
-      <a href="<%= brand_baseuri %><%= uri_path %>" style="display: block; text-decoration: none; word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 22px;" rel="noopener noreferrer"><span style="color: <%= brand_color %>; font-weight: 700;"><%= h(brand_baseuri) %></span><span style="color: #8a96a3;"><%= h(uri_path) %></span></a>
+      <a href="<%= brand_baseuri %><%= uri_path %>" style="display: block; text-decoration: none; word-break: break-all; font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 22px;" rel="noopener noreferrer"><span style="color: <%= brand_color %>; font-weight: 700;"><%= h(brand_baseuri) %></span><span style="color: #7a879b;"><%= h(uri_path) %></span></a>
     </td>
   </tr>
 </table>
@@ -22,18 +22,18 @@
 <!-- Reminder: deletion on expiry -->
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 16px 0;">
   <tr>
-    <td bgcolor="#fff8ed" style="background-color: #fff8ed; border-left: 3px solid #f0a020; border-radius: 4px; padding: 12px 14px; font-family: Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; color: #6b5418;">
-      <strong style="color: #8a6310;"><%= t('email.expiration_warning.reminder_label') %></strong> <%= t('email.expiration_warning.after_expiration') %>
+    <td bgcolor="#fff8eb" style="background-color: #fff8eb; border-left: 3px solid #b45309; border-radius: 4px; padding: 12px 14px; font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; color: #5c2a0c;">
+      <strong style="color: #92400e;"><%= t('email.expiration_warning.reminder_label') %></strong> <%= t('email.expiration_warning.after_expiration') %>
     </td>
   </tr>
 </table>
 
 <!-- Signature -->
-<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+<div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; color: #2b3442; margin-top: 32px; border-top: 1px solid #e8edf4; padding-top: 16px;">
   <p style="margin: 0;"><%= h(signature_name || t('email.expiration_warning.signature')) %></p>
 </div>
 
 <!-- Why you received this -->
-<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; color: #97a1ab; margin: 22px 0 0 0;">
+<p style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; color: #687489; margin: 22px 0 0 0;">
   <%= h(t('email.expiration_warning.footer_note', product_name: product_name)) %>
 </p>

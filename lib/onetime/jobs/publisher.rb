@@ -663,7 +663,14 @@ module Onetime
         when :templated
           return unless template && data
 
-          Onetime::Mail.deliver(template, data, sender_config: sender_config)
+          # Mirror EmailWorker: the enqueue sites put the locale inside the
+          # payload, so pull it out and pass it explicitly. Without this the
+          # fallback path ignored it and Mailer.deliver rendered 'en'.
+          email_data = data.dup
+          locale     = (email_data.delete(:locale) || email_data.delete('locale')).to_s.strip
+          locale     = OT.default_locale if locale.empty?
+
+          Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         when :raw
           return unless raw_email
 

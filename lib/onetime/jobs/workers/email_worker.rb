@@ -158,7 +158,7 @@ module Onetime
           # so normalize (strip) first and treat blank/whitespace the same as missing.
           # Stripping here canonicalizes the value for every enqueue site on the queued
           # delivery path, avoiding an invalid I18n locale like :" en ". (The in-process
-          # Publisher fallback path takes a different route and always renders 'en'.)
+          # Publisher fallback path, Publisher#deliver_email, applies the same rule.)
           locale = (email_data.delete(:locale) || email_data.delete('locale')).to_s.strip
           locale = OT.default_locale if locale.empty?
 

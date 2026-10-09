@@ -5,9 +5,10 @@
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
+  import { useDecryptReveal } from '@/shared/composables/useDecryptReveal';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
-  import { computed } from 'vue';
+  import { computed, onMounted } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
@@ -42,6 +43,14 @@
       props.submissionStatus?.status === 'success',
   }));
 
+  // One-shot reveal: lock opens, then the text "decrypts" into place. The
+  // textarea shows `displayValue`; copy always uses the real secret_value.
+  const secretValue = computed(() => props.record?.secret_value);
+  const { phase, displayValue, start: startReveal, skip: skipReveal } =
+    useDecryptReveal(secretValue);
+  const isRevealing = computed(() => phase.value !== 'done');
+  onMounted(startReveal);
+
   const { isCopied, copyToClipboard } = useClipboard();
 
   // Use different translation keys for copy button text based on state
@@ -54,6 +63,7 @@
       return;
     }
 
+    skipReveal();
     await copyToClipboard(props.record?.secret_value);
 
     // Announce copy success to screen readers
@@ -70,6 +80,45 @@
   <BaseSecretDisplay>
     <!-- Header section with title and help link -->
     <template #header>
+      <!-- Unlock stage: one-shot (no loops); ends on an open lock -->
+      <div
+        v-if="!record?.verification"
+        class="mb-6 flex justify-center"
+        aria-hidden="true">
+        <div class="relative flex size-20 items-center justify-center">
+          <span
+            v-if="isRevealing"
+            class="reveal-ring absolute inset-0 rounded-full border-2 border-brand-400"></span>
+          <span
+            class="reveal-badge relative flex size-16 items-center justify-center rounded-full
+              bg-brand-50 text-brand-600 ring-1 ring-brand-600/20
+              dark:bg-brand-400/10 dark:text-brand-400 dark:ring-brand-400/30">
+            <svg
+              viewBox="0 0 24 24"
+              class="size-8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect
+                x="4"
+                y="11"
+                width="16"
+                height="10"
+                rx="2" />
+              <path
+                class="reveal-shackle"
+                d="M8 11V7a4 4 0 0 1 8 0v4" />
+              <circle
+                cx="12"
+                cy="16"
+                r="1.25"
+                class="fill-brandcomp-400 stroke-none" />
+            </svg>
+          </span>
+        </div>
+      </div>
       <div class="mb-4 flex items-start justify-between">
         <div>
           <h1
@@ -149,13 +198,18 @@
         <textarea
           v-if="record?.secret_value"
           :id="secretContentId"
-          class="w-full resize-none rounded-md
-            border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          :class="[
+            'w-full resize-none rounded-md border px-3 py-2 font-mono text-base leading-[1.2] tracking-wider',
+            'transition-colors duration-500',
+            'focus:outline-none focus:ring-2 focus:ring-brand-500',
+            isRevealing
+              ? 'border-brand-400/60 bg-brand-50/60 text-brand-700 dark:border-brand-400/40 dark:bg-brand-400/5 dark:text-brand-300'
+              : 'border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white',
+          ]"
           readonly
           :rows="details?.display_lines ?? 4"
-          :value="record?.secret_value"
+          :value="displayValue"
+          :aria-busy="isRevealing"
           aria-describedby="copy-instructions"
           :aria-label="t('web.secrets.secret_content')"
           data-testid="secret-content"></textarea>
@@ -164,6 +218,22 @@
           class="text-red-500 dark:text-red-400"
           role="alert">
           {{ t('web.secrets.secret_value_not_available') }}
+        </div>
+        <div
+          v-if="record?.secret_value && isRevealing"
+          class="mt-1 flex items-center justify-between text-xs">
+          <span
+            class="font-mono uppercase tracking-wider text-brand-700 dark:text-brand-300"
+            aria-hidden="true">
+            {{ t('web.secrets.revealing') }}
+          </span>
+          <button
+            type="button"
+            class="font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+            data-testid="secret-reveal-skip"
+            @click="skipReveal">
+            {{ t('web.secrets.skip_animation') }}
+          </button>
         </div>
         <p
           id="copy-instructions"
@@ -174,9 +244,40 @@
     </template>
 
     <template #warnings>
-      <div>
-        <!-- prettier-ignore-attribute class -->
-      </div>
+      <!-- Post-reveal: make it explicit the secret is gone server-side -->
+      <Transition
+        enter-active-class="transition duration-500 ease-out motion-reduce:transition-none"
+        enter-from-class="translate-y-1 opacity-0"
+        enter-to-class="translate-y-0 opacity-100">
+        <div
+          v-if="!record?.verification && record?.secret_value && !isRevealing"
+          class="mt-4 flex items-start gap-3 rounded-lg border border-brandcomp-600/30 bg-brandcomp-50 p-4
+            dark:border-brandcomp-400/30 dark:bg-brandcomp-400/10"
+          role="status"
+          aria-live="polite"
+          data-testid="secret-burned-notice">
+          <!-- Flame: burned after reading -->
+          <svg
+            viewBox="0 0 24 24"
+            class="mt-0.5 size-5 shrink-0 text-brandcomp-700 dark:text-brandcomp-300"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M12 22c4 0 7-2.7 7-6.6 0-3.1-2-5.3-3.6-7-.4 1.9-1.4 3.1-2.6 3.6.3-3.4-1-6.4-3.8-9-.3 3.6-2.2 5.8-3.6 7.6C4.3 12.1 5 13.7 5 15.4 5 19.3 8 22 12 22Z" />
+          </svg>
+          <div>
+            <p class="font-brand text-sm font-semibold text-brandcomp-800 dark:text-brandcomp-300">
+              {{ t('web.secrets.burned_title') }}
+            </p>
+            <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">
+              {{ t('web.secrets.burned_body') }}
+            </p>
+          </div>
+        </div>
+      </Transition>
     </template>
 
     <template #cta>
@@ -259,5 +360,52 @@
   :focus {
     outline: 2px solid currentColor;
     outline-offset: 2px;
+  }
+
+  /*
+   * Unlock stage (GoDatalize motion: ease-out curve, one-shot, no loops).
+   * The shackle lifts and swings open; a teal ring bursts once behind the
+   * badge. Final state = open lock, so the page never looks "still locked".
+   */
+  .reveal-shackle {
+    transform-box: view-box;
+    transform-origin: 16px 11px;
+    animation: shackle-open 450ms cubic-bezier(0.2, 0.7, 0.2, 1) 180ms 1 both;
+  }
+
+  .reveal-ring {
+    animation: ring-burst 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms 1 both;
+  }
+
+  .reveal-badge {
+    animation: badge-pop 650ms cubic-bezier(0.2, 0.7, 0.2, 1) 1 both;
+  }
+
+  @keyframes shackle-open {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(-3px) rotate(24deg); }
+  }
+
+  @keyframes ring-burst {
+    from { transform: scale(0.7); opacity: 0.7; }
+    to { transform: scale(1.8); opacity: 0; }
+  }
+
+  @keyframes badge-pop {
+    0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgb(54 215 183 / 0); }
+    60% { transform: scale(1.06); box-shadow: 0 0 32px 4px rgb(54 215 183 / 0.35); }
+    100% { transform: scale(1); box-shadow: 0 0 18px 0 rgb(54 215 183 / 0.15); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-ring,
+    .reveal-badge {
+      animation: none;
+    }
+
+    .reveal-shackle {
+      animation: none;
+      transform: translateY(-3px) rotate(24deg);
+    }
   }
 </style>

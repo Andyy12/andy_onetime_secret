@@ -45,6 +45,15 @@
     return t('web.COMMON.click_to_continue');
   });
 
+  // Account-verification links keep the neutral "continue" wording; real
+  // secrets get an explicit "Reveal secret".
+  const submitLabel = computed(() => {
+    if (props.isSubmitting) return t('web.secrets.revealing');
+    return props.record?.verification
+      ? t('web.COMMON.click_to_continue')
+      : t('web.secrets.reveal_button');
+  });
+
   // Handle form submission
   const submitForm = async () => {
     emit('user-confirmed', passphrase.value);
@@ -64,13 +73,6 @@
           class="text-xl font-bold text-gray-800 dark:text-gray-200">
           {{ statusMessage }}
         </h1>
-        <div
-          v-if="!record?.has_passphrase"
-          class="mt-1 text-base text-gray-600 dark:text-gray-400"
-          role="status"
-          aria-live="polite">
-          {{ t('web.COMMON.careful_only_see_once') }}
-        </div>
       </div>
 
       <!-- Help Modal Trigger positioned to the right -->
@@ -91,6 +93,41 @@
           <SecretRecipientHelpContent />
         </template>
       </NeedHelpModal>
+    </div>
+
+    <!-- One-time warning: amber is the brand's "decision" colour. Shown for
+         every secret (with or without passphrase) before the reveal. -->
+    <div
+      v-if="!record?.verification"
+      class="mb-6 flex items-start gap-3 rounded-lg border border-brandcomp-600/30 bg-brandcomp-50 p-4
+        dark:border-brandcomp-400/30 dark:bg-brandcomp-400/10"
+      role="note"
+      data-testid="secret-reveal-once-notice">
+      <span
+        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brandcomp-100 text-brandcomp-700
+          dark:bg-brandcomp-400/15 dark:text-brandcomp-300"
+        aria-hidden="true">
+        <!-- Eye with a single-use "1" -->
+        <svg
+          viewBox="0 0 24 24"
+          class="size-6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+          <path d="M11 10.2 12.4 9v6" />
+        </svg>
+      </span>
+      <div>
+        <p class="font-brand text-base font-semibold text-brandcomp-800 dark:text-brandcomp-300">
+          {{ t('web.secrets.reveal_once_title') }}
+        </p>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+          {{ t('web.secrets.reveal_once_body') }}
+        </p>
+      </div>
     </div>
 
     <form
@@ -150,12 +187,32 @@
         type="submit"
         :disabled="isSubmitting"
         :class="[
-          'w-full rounded-md bg-brand-500 px-6 py-3 text-2xl font-semibold text-white transition duration-150 ease-in-out',
-          'hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
-          'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-400',
+          'group flex w-full items-center justify-center gap-3 rounded-lg bg-brand-600 px-6 py-3.5 text-lg font-semibold text-white transition duration-150 ease-in-out',
+          'hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
+          'disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-800',
         ]"
         data-testid="secret-reveal-submit">
-        {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}
+        <!-- Lock whose shackle lifts on hover: a hint of what the click does -->
+        <svg
+          viewBox="0 0 24 24"
+          class="size-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true">
+          <rect
+            x="4"
+            y="11"
+            width="16"
+            height="10"
+            rx="2" />
+          <path
+            class="origin-[16px_11px] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:rotate-12 motion-reduce:transition-none"
+            d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <span>{{ submitLabel }}</span>
       </button>
     </form>
   </div>

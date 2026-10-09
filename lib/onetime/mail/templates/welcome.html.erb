@@ -1,31 +1,31 @@
 <%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
 <!-- Title -->
-<div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+<div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 24px; color: #0a0e14; margin-bottom: 16px;">
   <p style="margin: 0;"><%= t('email.welcome.title', product_name: product_name) %></p>
 </div>
 
 <!-- Body -->
-<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+<div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #2b3442;">
   <p><%= t('email.welcome.verify_prompt') %></p>
 
   <div style="margin: 24px 0;">
-    <a href="<%= verification_url %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+    <a href="<%= verification_url %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600;" rel="noopener noreferrer">
       <%= t('email.welcome.verify_button') %>
     </a>
   </div>
 
-  <p style="color: #666666; font-size: 12px;">
+  <p style="color: #556277; font-size: 12px;">
     <%= t('email.welcome.copy_link_prompt') %><br />
     <a href="<%= verification_url %>" style="color: <%= brand_color %>; word-break: break-all;"><%= verification_url %></a>
   </p>
 </div>
 
 <!-- Signature -->
-<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+<div style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; color: #2b3442; margin-top: 32px; border-top: 1px solid #e8edf4; padding-top: 16px;">
   <p style="margin: 0;"><%= h(signature_name || t('email.welcome.signature')) %></p>
 </div>
 
 <!-- Postscript -->
-<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
+<p style="font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #687489; margin-top: 24px;">
   <%= h(t('email.welcome.postscript', email_address: email_address)) %>
 </p>

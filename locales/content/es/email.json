@@ -19,6 +19,10 @@
     "renderer": "erb",
     "source_hash": "c0571266"
   },
+  "email.secret_link.view_button": {
+    "text": "Ver secreto",
+    "source_hash": "264843db"
+  },
   "email.secret_link.important_label": {
     "text": "Importante:",
     "renderer": "erb",

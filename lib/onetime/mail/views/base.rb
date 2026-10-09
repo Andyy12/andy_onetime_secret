@@ -483,6 +483,36 @@ module Onetime
             conf_dig('emailer', 'show_logo') == true
           end
 
+          # Pack-carried PNG logo for mail (brand pack file brand-logo.png).
+          # Most mail clients (Gmail, Outlook) do not render SVG, and the web
+          # masthead's brand.logo_url is usually a root-relative SVG that
+          # logo_url (above) drops for mail. When the resolved brand pack ships
+          # brand-logo.png, it is already served at /brand-logo.png
+          # (StaticFiles::BRAND_PACK_LOGO_URLS), so build its absolute URL.
+          # @return [String, nil]
+          def pack_email_logo_url
+            return @pack_email_logo_url if defined?(@pack_email_logo_url)
+
+            path                 = Onetime.brand_asset_path('brand-logo.png')
+            @pack_email_logo_url = File.exist?(path) ? "#{site_baseuri}/brand-logo.png" : nil
+          rescue StandardError
+            @pack_email_logo_url = nil
+          end
+
+          # Logo for the mail header: an absolute brand.logo_url wins (operator
+          # override), else the pack's PNG. Still gated by show_logo? in the
+          # layout, so operators opt in to images explicitly.
+          # @return [String, nil]
+          def email_logo_url
+            logo_url || pack_email_logo_url
+          end
+
+          # True when the mail logo is the wide horizontal pack lockup (sized by
+          # height) rather than a square operator icon.
+          def wide_email_logo?
+            logo_url.nil? && !pack_email_logo_url.nil?
+          end
+
           private
 
           # URL scheme ('https://' unless site.ssl is explicitly false). Shared

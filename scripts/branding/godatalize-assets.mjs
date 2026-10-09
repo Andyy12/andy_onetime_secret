@@ -83,6 +83,16 @@ async function main() {
   await writeFile(path.join(PACK_DIR, 'safari-pinned-tab.svg'), pinned);
   console.log('wrote safari-pinned-tab.svg');
 
+  // Mail logo: horizontal lockup, `claro` palette (mail cards are white).
+  // PNG because Gmail/Outlook don't render SVG; 2x height (56px) so it stays
+  // sharp when the mail layout shows it at 28px. Served at /brand-logo.png.
+  const logoClaro = await readFile(path.join(PACK_DIR, 'brand/godatalize-logo-claro.svg'));
+  await sharp(logoClaro, { density: 300 })
+    .resize({ height: 56 })
+    .png()
+    .toFile(path.join(PACK_DIR, 'brand-logo.png'));
+  console.log('wrote brand-logo.png');
+
   // Social preview 1200x630: horizontal dark logo centred on ink.
   const logo = await readFile(path.join(PACK_DIR, 'brand/godatalize-logo-oscuro.svg'));
   const logoPng = await sharp(logo, { density: 300 }).resize({ width: 760 }).png().toBuffer();
