@@ -114,11 +114,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vite.config.t
 ARG ALLOW_DEV_VERSION=true
 RUN set -eux && \
     PKG_VERSION=$(node -p "require('./package.json').version") && \
-    if [ "${PKG_VERSION}" = "0.0.0-rc0" ] && [ -n "${VERSION}" ] && \
-       [ "${VERSION}" != "dev" ] && [ "${VERSION}" != "0.0.0-rc0" ]; then \
-      yq -i -o json ".version = \"${VERSION}\"" package.json && \
-      echo "NOTICE: package.json had placeholder; updated to ${VERSION} via build arg" >&2 && \
-      PKG_VERSION="${VERSION}" ; \
+    if [ "${PKG_VERSION}" = "0.0.0-rc0" ] && [ -n "${VERSION:-}" ] && \
+       [ "${VERSION:-}" != "dev" ] && [ "${VERSION:-}" != "0.0.0-rc0" ]; then \
+      yq -i -o json ".version = \"${VERSION:-}\"" package.json && \
+      echo "NOTICE: package.json had placeholder; updated to ${VERSION:-} via build arg" >&2 && \
+      PKG_VERSION="${VERSION:-}" ; \
     fi && \
     if [ "${PKG_VERSION}" = "0.0.0-rc0" ]; then \
       if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
