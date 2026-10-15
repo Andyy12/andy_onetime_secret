@@ -232,7 +232,7 @@
             v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
-              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
+              href="https://www.godatalize.com"
               target="_blank"
               rel="noopener noreferrer"
               :aria-label="t('web.layout.release_notes')">

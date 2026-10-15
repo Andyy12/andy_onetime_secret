@@ -258,7 +258,7 @@
                   <p class="text-sm text-blue-700 dark:text-blue-300">
                     {{ t('web.translations.if_youre_interested_in_translation') }}
                     <a
-                      href="https://github.com/onetimesecret/onetimesecret"
+                      href="https://www.godatalize.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="font-medium underline hover:no-underline">

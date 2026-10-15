@@ -45,7 +45,10 @@ const { t } = useI18n();
           <span
             v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
-            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`">v{{ ot_version_long }}</a>
+            <a
+              href="https://www.godatalize.com"
+              target="_blank"
+              rel="noopener noreferrer">v{{ ot_version_long }}</a>
           </span>
         </div>
 

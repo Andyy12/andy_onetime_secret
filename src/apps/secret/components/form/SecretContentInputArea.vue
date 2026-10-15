@@ -57,11 +57,55 @@ const { t } = useI18n();
     emit('update:content', newContent);
   });
 
+  const applyTemplate = (type: 'credentials' | 'database' | 'env') => {
+    switch (type) {
+      case 'credentials':
+        content.value = 'Usuario: \nContraseña: \nNotas: ';
+        break;
+      case 'database':
+        content.value = 'DB_HOST=localhost\nDB_PORT=5432\nDB_NAME=\nDB_USER=\nDB_PASSWORD=';
+        break;
+      case 'env':
+        content.value = 'API_KEY=\nAPI_SECRET=\nWEBHOOK_URL=\nACCESS_TOKEN=';
+        break;
+    }
+  };
+
   defineExpose({ clearTextarea });
 </script>
 
 <template>
   <div class="relative">
+    <!-- Quick templates -->
+    <div class="mb-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+      <span class="font-medium text-gray-500 dark:text-gray-400">
+        {{ t('web.templates.label', 'Plantillas rápidas:') }}
+      </span>
+      <button
+        type="button"
+        @click="applyTemplate('credentials')"
+        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
+        data-testid="template-credentials">
+        <span>👤</span>
+        <span>{{ t('web.templates.credentials', 'Usuario / Clave') }}</span>
+      </button>
+      <button
+        type="button"
+        @click="applyTemplate('database')"
+        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
+        data-testid="template-database">
+        <span>🗄️</span>
+        <span>{{ t('web.templates.database', 'Base de datos') }}</span>
+      </button>
+      <button
+        type="button"
+        @click="applyTemplate('env')"
+        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
+        data-testid="template-env">
+        <span>⚙️</span>
+        <span>{{ t('web.templates.env', 'Variables .env') }}</span>
+      </button>
+    </div>
     <!-- <div
       id="textarea-focus-announcement"
       aria-live="polite"

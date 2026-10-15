@@ -5,8 +5,8 @@
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useClipboard } from '@/shared/composables/useClipboard';
-  import { useProductIdentity } from '@/shared/stores/identityStore';
-  import { computed } from 'vue';
+  import { useDecryptReveal } from '@/shared/composables/useDecryptReveal';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   // Default brand settings for when no custom branding is configured
@@ -43,6 +43,13 @@
       props.submissionStatus?.status === 'success',
   }));
 
+  // One-shot reveal: lock opens, text decrypts into place
+  const secretValue = computed(() => props.record?.secret_value);
+  const { phase, displayValue, start: startReveal, skip: skipReveal } =
+    useDecryptReveal(secretValue);
+  const isRevealing = computed(() => phase.value !== 'done');
+  onMounted(startReveal);
+
   const { isCopied, copyToClipboard } = useClipboard();
 
   const copySecretContent = async () => {
@@ -50,6 +57,7 @@
       return;
     }
 
+    skipReveal();
     await copyToClipboard(props.record?.secret_value);
 
     // Announce copy success to screen readers
@@ -61,7 +69,7 @@
     setTimeout(() => announcement.remove(), 1000);
   };
 
-  const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
+  const isCopiedText = computed(() => (isCopied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard')));
 </script>
 
 <template>
@@ -120,7 +128,54 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <div :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
+        <!-- Unlock stage badge -->
+        <div
+          v-if="!record?.verification"
+          class="mb-4 flex justify-center"
+          aria-hidden="true">
+          <div class="relative flex size-16 items-center justify-center">
+            <span
+              v-if="isRevealing"
+              class="reveal-ring absolute inset-0 rounded-full border-2 border-brand-400"></span>
+            <span
+              class="reveal-badge relative flex size-14 items-center justify-center rounded-full
+                bg-brand-50 text-brand-600 ring-1 ring-brand-600/20
+                dark:bg-brand-400/10 dark:text-brand-400 dark:ring-brand-400/30">
+              <svg
+                viewBox="0 0 24 24"
+                class="size-7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect
+                  x="4"
+                  y="11"
+                  width="16"
+                  height="10"
+                  rx="2" />
+                <path
+                  class="reveal-shackle"
+                  d="M8 11V7a4 4 0 0 1 8 0v4" />
+                <circle
+                  cx="12"
+                  cy="16"
+                  r="1.25"
+                  class="fill-brandcomp-400 stroke-none" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <div
+          :class="[
+            cornerClass,
+            'size-full overflow-hidden border transition-colors duration-500',
+            isRevealing
+              ? 'border-brand-400/60 bg-brand-50/60 text-brand-700 dark:border-brand-400/40 dark:bg-brand-400/5 dark:text-brand-300'
+              : 'border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white',
+          ]">
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
@@ -128,14 +183,66 @@
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
-            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:ring-2 focus:ring-brand-500 focus:outline-none sm:min-h-36 dark:text-white"
+            class="block size-full min-h-32 resize-none border-none bg-transparent p-3 font-mono text-base focus:ring-2 focus:ring-brand-500 focus:outline-none sm:min-h-36 dark:text-white"
             readonly
             :rows="details?.display_lines ?? 4"
-            :value="record?.secret_value"
+            :value="displayValue"
+            :aria-busy="isRevealing"
             :aria-label="t('web.secrets.secret_content')"
             data-testid="secret-content"
             ref="secretContent"></textarea>
         </div>
+
+        <div
+          v-if="record?.secret_value && isRevealing"
+          class="mt-1.5 flex items-center justify-between text-xs">
+          <span
+            class="font-mono uppercase tracking-wider text-brand-700 dark:text-brand-300"
+            aria-hidden="true">
+            {{ t('web.secrets.revealing') }}
+          </span>
+          <button
+            type="button"
+            class="font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+            data-testid="secret-reveal-skip"
+            @click="skipReveal">
+            {{ t('web.secrets.skip_animation') }}
+          </button>
+        </div>
+
+        <!-- Burned notice -->
+        <Transition
+          enter-active-class="transition duration-500 ease-out motion-reduce:transition-none"
+          enter-from-class="translate-y-1 opacity-0"
+          enter-to-class="translate-y-0 opacity-100">
+          <div
+            v-if="!record?.verification && record?.secret_value && !isRevealing"
+            class="mt-4 flex items-start gap-3 rounded-lg border border-brandcomp-600/30 bg-brandcomp-50 p-4
+              dark:border-brandcomp-400/30 dark:bg-brandcomp-400/10"
+            role="status"
+            aria-live="polite"
+            data-testid="secret-burned-notice">
+            <svg
+              viewBox="0 0 24 24"
+              class="mt-0.5 size-5 shrink-0 text-brandcomp-700 dark:text-brandcomp-300"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M12 22c4 0 7-2.7 7-6.6 0-3.1-2-5.3-3.6-7-.4 1.9-1.4 3.1-2.6 3.6.3-3.4-1-6.4-3.8-9-.3 3.6-2.2 5.8-3.6 7.6C4.3 12.1 5 13.7 5 15.4 5 19.3 8 22 12 22Z" />
+            </svg>
+            <div>
+              <p class="font-brand text-sm font-semibold text-brandcomp-800 dark:text-brandcomp-300">
+                {{ t('web.secrets.burned_title') }}
+              </p>
+              <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">
+                {{ t('web.secrets.burned_body') }}
+              </p>
+            </div>
+          </div>
+        </Transition>
       </div>
     </template>
 

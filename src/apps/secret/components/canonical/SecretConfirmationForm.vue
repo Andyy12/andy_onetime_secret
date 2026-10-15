@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
+  import PasswordStrengthChecker from '@/shared/components/forms/PasswordStrengthChecker.vue';
   import SecretRecipientHelpContent from '@/apps/secret/components/SecretRecipientHelpContent.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
@@ -172,6 +173,10 @@
             :aria-describedby="passphraseDescriptionId"
             data-testid="secret-reveal-passphrase-input" />
         </div>
+        <PasswordStrengthChecker
+          v-if="passphrase"
+          :password="passphrase"
+          class="mt-2 text-xs" />
         <p
           v-if="error"
           id="passphrase-error"

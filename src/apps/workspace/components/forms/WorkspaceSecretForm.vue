@@ -17,6 +17,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretTitleInput from '@/shared/components/forms/SecretTitleInput.vue';
+  import PasswordGeneratorConfig from '@/shared/components/forms/PasswordGeneratorConfig.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
@@ -224,10 +225,16 @@
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
+  const generatedPassword = ref('');
+
   // Form submission handlers
   const handleSubmit = () => {
     // Use appropriate submission type based on selected action
     if (selectedAction.value === 'generate-password') {
+      if (generatedPassword.value) {
+        operations.updateField('secret', generatedPassword.value);
+        return submit('conceal');
+      }
       return submit('generate');
     }
     return submit('conceal');
@@ -377,61 +384,10 @@
           <!-- Generate Password display for Generate mode -->
           <div
             v-show="selectedAction === 'generate-password'"
-            :class="[cornerClass]"
-            class="relative overflow-hidden rounded-lg border border-brand-200/50
-              bg-gradient-to-br from-brand-50/80 to-purple-50/40
-              shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm
-              dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20
-              dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
-            style="min-height: 280px"
-            aria-labelledby="generatedPasswordHeader"
-            aria-describedby="generatedPasswordDesc"
-            role="region">
-            <!-- Decorative blur orbs -->
-            <div
-              class="pointer-events-none absolute -left-12 -top-12 size-32
-                rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
-              aria-hidden="true"></div>
-            <div
-              class="pointer-events-none absolute -bottom-12 -right-12 size-32
-                rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
-              aria-hidden="true"></div>
-
-            <div class="relative z-10 flex h-full min-h-[280px] flex-col items-center justify-center space-y-4 p-6 text-center">
-              <div class="flex justify-center">
-                <div
-                  class="animate-[pulse_2s_ease-in-out_infinite] rounded-full
-                    bg-gradient-to-br from-brand-100 to-purple-100 p-4
-                    shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)]
-                    dark:from-brand-900/50 dark:to-purple-900/50">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    class="size-7 text-brand-600 dark:text-brand-400">
-                    <path
-                      d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                  </svg>
-                </div>
-              </div>
-
-              <h4
-                id="generatedPasswordHeader"
-                class="text-lg font-medium text-gray-900 dark:text-white"
-                tabindex="-1">
-                {{ t('web.homepage.password_generation_title') }}
-              </h4>
-
-              <p
-                id="generatedPasswordDesc"
-                class="mx-auto max-w-md text-gray-600 dark:text-gray-300">
-                {{ t('web.homepage.password_generation_description') }}
-              </p>
-            </div>
+            :class="[cornerClass]">
+            <PasswordGeneratorConfig
+              :corner-class="cornerClass"
+              @update:password="(val) => (generatedPassword = val)" />
           </div>
         </div>
 

@@ -8,7 +8,9 @@
 
 <template>
   <a
-    href="https://github.com/onetimesecret/onetimesecret"
+    href="https://www.godatalize.com"
+    target="_blank"
+    rel="noopener noreferrer"
     class="github-corner"
     :aria-label="t('web.layout.view_source_on_github')">
     <svg

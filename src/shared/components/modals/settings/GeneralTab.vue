@@ -139,7 +139,7 @@ const themeOptions: {
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
             {{ t('web.translations.if_youre_interested_in_translation') }}
             <a
-              href="https://github.com/onetimesecret/onetimesecret"
+              href="https://www.godatalize.com"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">

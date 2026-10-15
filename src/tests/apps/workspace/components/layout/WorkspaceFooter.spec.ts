@@ -360,7 +360,7 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(true);
       expect(versionLink.text()).toContain('v1.0.0');
     });
@@ -370,7 +370,7 @@ describe('WorkspaceFooter footerLinks', () => {
         ui: {},
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(true);
     });
 
@@ -381,7 +381,7 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(false);
     });
 
@@ -414,7 +414,7 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(false);
     });
 
@@ -426,7 +426,7 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      let versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      let versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(false);
       wrapper.unmount();
 
@@ -437,7 +437,7 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(true);
     });
   });
