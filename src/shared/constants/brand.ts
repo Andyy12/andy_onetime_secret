@@ -34,6 +34,14 @@ export const DEFAULT_BUTTON_TEXT_LIGHT = true;
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 
 /**
+ * GoDatalize corporate site. Footers show this link where upstream shows the
+ * build version ("v0.0.0-rc0 (dev)"); the version stays in the link's
+ * tooltip for support.
+ */
+export const GODATALIZE_WEBSITE_URL = 'https://www.godatalize.com';
+export const GODATALIZE_WEBSITE_LABEL = 'www.godatalize.com';
+
+/**
  * Neutral brand defaults for private-label / unbranded instances.
  *
  * These are intentionally NOT OTS-branded. They provide a clean, generic

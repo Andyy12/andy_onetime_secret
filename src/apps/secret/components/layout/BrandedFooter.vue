@@ -7,6 +7,7 @@
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
   import { useFooterConfig } from '@/shared/composables/useFooterConfig';
+  import { GODATALIZE_WEBSITE_LABEL, GODATALIZE_WEBSITE_URL } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
@@ -44,11 +45,11 @@ const { t } = useI18n();
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion && showVersionConfig"
-            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
+            :title="`${t('web.COMMON.version')} v${ot_version_long}`">
             <a
-              href="https://www.godatalize.com"
+              :href="GODATALIZE_WEBSITE_URL"
               target="_blank"
-              rel="noopener noreferrer">v{{ ot_version_long }}</a>
+              rel="noopener noreferrer">{{ GODATALIZE_WEBSITE_LABEL }}</a>
           </span>
         </div>
 

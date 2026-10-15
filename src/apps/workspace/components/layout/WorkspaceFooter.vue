@@ -9,7 +9,11 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import {
+    GODATALIZE_WEBSITE_LABEL,
+    GODATALIZE_WEBSITE_URL,
+    NEUTRAL_BRAND_DEFAULTS,
+  } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import { useFooterConfig } from '@/shared/composables/useFooterConfig';
@@ -230,13 +234,12 @@
         <div class="flex items-center gap-x-3">
           <span
             v-if="displayVersion && showVersionConfig"
-            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
+            :title="`${t('web.COMMON.version')} v${ot_version_long}`">
             <a
-              href="https://www.godatalize.com"
+              :href="GODATALIZE_WEBSITE_URL"
               target="_blank"
-              rel="noopener noreferrer"
-              :aria-label="t('web.layout.release_notes')">
-              v{{ ot_version_long }}
+              rel="noopener noreferrer">
+              {{ GODATALIZE_WEBSITE_LABEL }}
             </a>
           </span>
           <span

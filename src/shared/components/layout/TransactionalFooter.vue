@@ -7,7 +7,11 @@
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import FooterLinks from '@/shared/components/layout/FooterLinks.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import {
+    GODATALIZE_WEBSITE_LABEL,
+    GODATALIZE_WEBSITE_URL,
+    NEUTRAL_BRAND_DEFAULTS,
+  } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useFooterConfig } from '@/shared/composables/useFooterConfig';
@@ -82,13 +86,12 @@
           text-xs text-gray-600 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion && showVersionConfig"
-            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
+            :title="`${t('web.COMMON.version')} v${ot_version_long}`">
             <a
-              href="https://www.godatalize.com"
+              :href="GODATALIZE_WEBSITE_URL"
               target="_blank"
-              rel="noopener noreferrer"
-              :aria-label="t('web.layout.release_notes')">
-              v{{ ot_version_long }}
+              rel="noopener noreferrer">
+              {{ GODATALIZE_WEBSITE_LABEL }}
             </a>
           </span>
           <span
