@@ -21,6 +21,17 @@ describe('usePasswordGenerator', () => {
     expect(password.value).toHaveLength(24);
   });
 
+  it('never generates fewer than 6 characters, even from a short or cleared input', () => {
+    const { password, length } = usePasswordGenerator();
+
+    length.value = 1;
+    expect(password.value).toHaveLength(6);
+
+    // v-model.number yields '' when the number input is cleared
+    (length as unknown as { value: unknown }).value = '';
+    expect(password.value).toHaveLength(6);
+  });
+
   it('generates numbers only when only numbers are selected', () => {
     const { password } = usePasswordGenerator({
       length: 20,

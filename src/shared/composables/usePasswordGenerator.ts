@@ -75,7 +75,9 @@ export function usePasswordGenerator(initialOptions: PasswordGeneratorOptions = 
   );
 
   function generate(): string {
-    const minLength = Math.max(4, Math.min(128, length.value));
+    // The number input lets users type below its min="6" (or clear it, which
+    // v-model.number turns into ''), so clamp here to the UI's floor of 6.
+    const minLength = Math.max(6, Math.min(128, Math.floor(Number(length.value) || 0)));
     const activeSets: string[] = [];
 
     if (uppercase.value) {
