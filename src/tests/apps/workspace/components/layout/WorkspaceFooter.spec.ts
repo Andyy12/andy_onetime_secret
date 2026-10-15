@@ -362,7 +362,10 @@ describe('WorkspaceFooter footerLinks', () => {
 
       const versionLink = wrapper.find('a[href*="godatalize.com"]');
       expect(versionLink.exists()).toBe(true);
-      expect(versionLink.text()).toContain('v1.0.0');
+      // GoDatalize shows its website instead of the build version; the
+      // version moves to the tooltip.
+      expect(versionLink.text()).toBe('www.godatalize.com');
+      expect(versionLink.element.parentElement?.getAttribute('title')).toContain('v1.0.0-test');
     });
 
     it('shows version when displayVersion=true and ui.show_version is undefined (default)', async () => {
