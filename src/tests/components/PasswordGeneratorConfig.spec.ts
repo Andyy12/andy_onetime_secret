@@ -1,10 +1,29 @@
 // src/tests/components/PasswordGeneratorConfig.spec.ts
 
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PasswordGeneratorConfig from '@/shared/components/forms/PasswordGeneratorConfig.vue';
 
 describe('PasswordGeneratorConfig.vue', () => {
+  // Settings persist per browser; isolate each test from the previous one.
+  beforeEach(() => localStorage.clear());
+
+  it('restores the settings the viewer changed last time', async () => {
+    const first = mount(PasswordGeneratorConfig, {
+      global: { mocks: { t: (key: string) => key } },
+    });
+    await first.find('[data-testid="password-length-number-input"]').setValue(30);
+    await first.find('[data-testid="checkbox-symbols"]').setValue(false);
+    first.unmount();
+
+    const second = mount(PasswordGeneratorConfig, {
+      global: { mocks: { t: (key: string) => key } },
+    });
+    const preview = second.find('[data-testid="generated-password-preview"]').text();
+    expect(preview).toHaveLength(30);
+    expect(preview).toMatch(/^[A-Za-z0-9]+$/);
+  });
+
   it('mounts and generates an initial password', () => {
     const wrapper = mount(PasswordGeneratorConfig, {
       global: {

@@ -27,11 +27,6 @@
   const qrDataUrl = ref<string>('');
   const isGenerating = ref(false);
 
-  const translate = (key: string, fallback: string) => {
-    const val = t(key);
-    return val && val !== key ? val : fallback;
-  };
-
   const generateQr = async () => {
     if (!props.url) return;
     try {
@@ -113,11 +108,12 @@
                 <DialogTitle
                   as="h3"
                   class="font-brand text-lg font-bold text-gray-900 dark:text-white">
-                  {{ translate('web.qr.title', 'Código QR del secreto') }}
+                  {{ t('web.qr.title') }}
                 </DialogTitle>
                 <button
                   type="button"
                   @click="handleClose"
+                  :aria-label="t('web.LABELS.close')"
                   class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600
                     dark:hover:bg-slate-800 dark:hover:text-gray-200">
                   <svg
@@ -143,10 +139,7 @@
 
               <p class="text-xs text-gray-500 dark:text-gray-400">
                 {{
-                  translate(
-                    'web.qr.instructions',
-                    'Escanea este código con la cámara de tu móvil para abrir el enlace seguro.'
-                  )
+                  t('web.qr.instructions')
                 }}
               </p>
 
@@ -155,13 +148,13 @@
                 <img
                   v-if="qrDataUrl"
                   :src="qrDataUrl"
-                  alt="QR Code"
+                  :alt="t('web.qr.title')"
                   class="size-60 rounded-lg object-contain"
                   data-testid="secret-qr-image" />
                 <div
                   v-else
                   class="flex size-60 items-center justify-center text-sm text-gray-400">
-                  {{ translate('web.qr.generating', 'Generando código QR…') }}
+                  {{ t('web.qr.generating') }}
                 </div>
               </div>
 
@@ -190,7 +183,7 @@
                       x2="12"
                       y2="3" />
                   </svg>
-                  <span>{{ translate('web.qr.download', 'Descargar imagen') }}</span>
+                  <span>{{ t('web.qr.download') }}</span>
                 </button>
                 <button
                   type="button"
@@ -198,7 +191,7 @@
                   class="inline-flex items-center justify-center rounded-lg bg-brand-600
                     px-4 py-2.5 text-sm font-medium text-white shadow-sm transition
                     hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600">
-                  {{ translate('web.COMMON.close', 'Cerrar') }}
+                  {{ t('web.LABELS.close') }}
                 </button>
               </div>
             </DialogPanel>

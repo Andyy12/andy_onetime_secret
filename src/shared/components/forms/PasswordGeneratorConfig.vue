@@ -4,17 +4,24 @@
   import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useClipboard } from '@/shared/composables/useClipboard';
-  import { usePasswordGenerator } from '@/shared/composables/usePasswordGenerator';
+  import {
+    GENERATOR_MAX_LENGTH,
+    GENERATOR_MIN_LENGTH,
+    loadGeneratorPrefs,
+    saveGeneratorPrefs,
+    usePasswordGenerator,
+  } from '@/shared/composables/usePasswordGenerator';
 
   interface Props {
     cornerClass?: string;
+    /** Explicit length; when omitted, the viewer's saved length (or 16) is used. */
     initialLength?: number;
     showDirectCopy?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     cornerClass: 'rounded-lg',
-    initialLength: 16,
+    initialLength: undefined,
     showDirectCopy: true,
   });
 
@@ -38,6 +45,9 @@
 
   const { t } = useI18n();
 
+  // Restore this viewer's last generator settings (length + character sets).
+  const savedPrefs = loadGeneratorPrefs();
+
   const {
     length,
     uppercase,
@@ -48,7 +58,10 @@
     password,
     strength,
     generate,
-  } = usePasswordGenerator({ length: props.initialLength });
+  } = usePasswordGenerator({
+    ...savedPrefs,
+    length: props.initialLength ?? savedPrefs?.length ?? 16,
+  });
 
   const { isCopied, copyToClipboard } = useClipboard();
 
@@ -88,24 +101,30 @@
     { immediate: true }
   );
 
-  // Fallback translation helper
-  const translate = (key: string, fallback: string) => {
-    const val = t(key);
-    return val && val !== key ? val : fallback;
-  };
+  // Remember the settings the viewer actually changes (not on first render).
+  watch([length, uppercase, lowercase, numbers, symbols, excludeAmbiguous], () => {
+    saveGeneratorPrefs({
+      length: length.value,
+      uppercase: uppercase.value,
+      lowercase: lowercase.value,
+      numbers: numbers.value,
+      symbols: symbols.value,
+      excludeAmbiguous: excludeAmbiguous.value,
+    });
+  });
 
   const strengthLabelText = computed(() => {
     switch (strength.value.score) {
       case 4:
-        return translate('web.generator.strength_very_strong', 'Muy fuerte');
+        return t('web.generator.strength_very_strong');
       case 3:
-        return translate('web.generator.strength_strong', 'Fuerte');
+        return t('web.generator.strength_strong');
       case 2:
-        return translate('web.generator.strength_good', 'Buena');
+        return t('web.generator.strength_good');
       case 1:
-        return translate('web.generator.strength_weak', 'Débil');
+        return t('web.generator.strength_weak');
       default:
-        return translate('web.generator.strength_very_weak', 'Muy débil');
+        return t('web.generator.strength_very_weak');
     }
   });
 </script>
@@ -133,7 +152,7 @@
           </svg>
         </span>
         <h4 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
-          {{ translate('web.generator.title', 'Generador seguro de contraseñas') }}
+          {{ t('web.generator.title') }}
         </h4>
       </div>
       <span
@@ -153,7 +172,7 @@
           text-gray-900 dark:text-gray-100 sm:text-lg"
         data-testid="generated-password-preview"
         tabindex="0"
-        :aria-label="translate('web.generator.preview_aria', 'Contraseña generada')">
+        :aria-label="t('web.generator.preview_aria')">
         {{ password }}
       </div>
 
@@ -162,7 +181,7 @@
         <button
           type="button"
           @click="handleRegenerate"
-          :title="translate('web.generator.reroll', 'Generar otra contraseña')"
+          :title="t('web.generator.reroll')"
           class="flex size-9 items-center justify-center rounded-md border border-gray-200
             bg-white text-gray-600 shadow-sm transition-all hover:bg-gray-100 hover:text-gray-900
             focus:outline-none focus:ring-2 focus:ring-brand-500
@@ -188,7 +207,7 @@
           v-if="showDirectCopy"
           type="button"
           @click="handleCopy"
-          :title="translate('web.generator.copy_to_clipboard', 'Copiar al portapapeles')"
+          :title="t('web.generator.copy_to_clipboard')"
           class="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium shadow-sm
             transition-all focus:outline-none focus:ring-2 focus:ring-brand-500"
           :class="
@@ -226,8 +245,8 @@
           </svg>
           <span>{{
             isCopied
-              ? translate('web.STATUS.copied', '¡Copiado!')
-              : translate('web.LABELS.copy', 'Copiar')
+              ? t('web.STATUS.copied')
+              : t('web.generator.copy')
           }}</span>
         </button>
       </div>
@@ -254,14 +273,14 @@
         <label
           for="password-length-slider"
           class="font-medium text-gray-700 dark:text-gray-300">
-          {{ translate('web.generator.length', 'Longitud de la contraseña') }}
+          {{ t('web.generator.length') }}
         </label>
         <div class="flex items-center gap-1.5">
           <input
             id="password-length-number"
             type="number"
-            min="6"
-            max="64"
+            :min="GENERATOR_MIN_LENGTH"
+            :max="GENERATOR_MAX_LENGTH"
             v-model.number="length"
             class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center font-mono
               text-sm font-semibold text-gray-900 focus:border-brand-500 focus:outline-none
@@ -269,7 +288,7 @@
               dark:text-white"
             data-testid="password-length-number-input" />
           <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ translate('web.generator.chars', 'caracteres') }}
+            {{ t('web.generator.chars') }}
           </span>
         </div>
       </div>
@@ -277,8 +296,8 @@
       <input
         id="password-length-slider"
         type="range"
-        min="6"
-        max="64"
+        :min="GENERATOR_MIN_LENGTH"
+        :max="GENERATOR_MAX_LENGTH"
         v-model.number="length"
         class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-brand-600
           dark:bg-gray-700 dark:accent-brand-400"
@@ -288,7 +307,7 @@
     <!-- Character Sets Checklist (LastPass style) -->
     <div class="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
       <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-        {{ translate('web.generator.character_options', 'Caracteres incluidos') }}
+        {{ t('web.generator.character_options') }}
       </p>
 
       <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -302,7 +321,7 @@
           }">
           <span class="flex items-center gap-2 text-gray-800 dark:text-gray-200">
             <span class="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">ABC</span>
-            <span>{{ translate('web.generator.uppercase', 'Mayúsculas') }}</span>
+            <span>{{ t('web.generator.uppercase') }}</span>
           </span>
           <input
             type="checkbox"
@@ -322,7 +341,7 @@
           }">
           <span class="flex items-center gap-2 text-gray-800 dark:text-gray-200">
             <span class="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">abc</span>
-            <span>{{ translate('web.generator.lowercase', 'Minúsculas') }}</span>
+            <span>{{ t('web.generator.lowercase') }}</span>
           </span>
           <input
             type="checkbox"
@@ -342,7 +361,7 @@
           }">
           <span class="flex items-center gap-2 text-gray-800 dark:text-gray-200">
             <span class="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">123</span>
-            <span>{{ translate('web.generator.numbers', 'Números') }}</span>
+            <span>{{ t('web.generator.numbers') }}</span>
           </span>
           <input
             type="checkbox"
@@ -362,7 +381,7 @@
           }">
           <span class="flex items-center gap-2 text-gray-800 dark:text-gray-200">
             <span class="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">#$&amp;</span>
-            <span>{{ translate('web.generator.symbols', 'Símbolos') }}</span>
+            <span>{{ t('web.generator.symbols') }}</span>
           </span>
           <input
             type="checkbox"
@@ -386,10 +405,10 @@
           data-testid="checkbox-exclude-ambiguous" />
         <div>
           <span class="font-medium text-gray-800 dark:text-gray-200">
-            {{ translate('web.generator.exclude_ambiguous', 'Evitar caracteres confusos') }}
+            {{ t('web.generator.exclude_ambiguous') }}
           </span>
           <span class="ml-1 text-gray-500 dark:text-gray-400">
-            (ej. <code class="rounded bg-gray-100 px-1 py-0.5 font-mono dark:bg-gray-800">i, l, 1, I, o, 0, O</code>)
+            ({{ t('web.generator.example_prefix') }} <code class="rounded bg-gray-100 px-1 py-0.5 font-mono dark:bg-gray-800">i, l, 1, I, o, 0, O</code>)
           </span>
         </div>
       </label>

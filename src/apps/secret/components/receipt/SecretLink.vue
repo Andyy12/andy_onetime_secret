@@ -113,8 +113,8 @@
           <button
             type="button"
             @click="isQrModalOpen = true"
-            :title="t('web.qr.button_title', 'Ver código QR')"
-            aria-label="Ver código QR"
+            :title="t('web.qr.button_title')"
+            :aria-label="t('web.qr.button_title')"
             class="flex items-center justify-center rounded-md border border-gray-200 bg-white p-2.5 text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             data-testid="show-qr-code-button">
             <svg
@@ -173,7 +173,7 @@
       <summary class="flex cursor-pointer items-center justify-between font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
         <span class="flex items-center gap-2">
           <span class="font-mono text-brand-600 dark:text-brand-400">&gt;_</span>
-          <span>{{ t('web.cli.curl_snippet_title', 'Comando cURL para terminal') }}</span>
+          <span>{{ t('web.cli.curl_snippet_title') }}</span>
         </span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-gray-400 transition-transform duration-200 group-open:rotate-180">
           <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -181,7 +181,7 @@
       </summary>
       <div class="mt-2.5 space-y-1.5 pt-2 border-t border-gray-100 dark:border-gray-700/50">
         <p class="text-gray-500 dark:text-gray-400">
-          {{ t('web.cli.curl_snippet_desc', 'Puedes consultar o compartir este enlace directamente desde tu consola:') }}
+          {{ t('web.cli.curl_snippet_desc') }}
         </p>
         <div class="relative flex items-center justify-between rounded bg-slate-900 p-2.5 font-mono text-emerald-400 dark:bg-black/80">
           <code class="truncate pr-2">curl -s "{{ record.share_url }}"</code>

@@ -1,11 +1,53 @@
 // src/tests/composables/usePasswordGenerator.spec.ts
 
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   AMBIGUOUS_CHARS,
   CHAR_SETS,
+  GENERATOR_PREFS_STORAGE_KEY,
+  loadGeneratorPrefs,
+  saveGeneratorPrefs,
   usePasswordGenerator,
 } from '@/shared/composables/usePasswordGenerator';
+
+describe('generator preferences', () => {
+  const prefs = {
+    length: 24,
+    uppercase: true,
+    lowercase: true,
+    numbers: false,
+    symbols: false,
+    excludeAmbiguous: true,
+  };
+
+  beforeEach(() => localStorage.clear());
+
+  it('round-trips saved settings', () => {
+    saveGeneratorPrefs(prefs);
+    expect(loadGeneratorPrefs()).toEqual(prefs);
+  });
+
+  it('returns null when nothing is saved', () => {
+    expect(loadGeneratorPrefs()).toBeNull();
+  });
+
+  it('rejects corrupt or out-of-range data', () => {
+    localStorage.setItem(GENERATOR_PREFS_STORAGE_KEY, '{not json');
+    expect(loadGeneratorPrefs()).toBeNull();
+
+    localStorage.setItem(GENERATOR_PREFS_STORAGE_KEY, JSON.stringify({ ...prefs, length: 2 }));
+    expect(loadGeneratorPrefs()).toBeNull();
+
+    localStorage.setItem(GENERATOR_PREFS_STORAGE_KEY, JSON.stringify({ ...prefs, symbols: 'yes' }));
+    expect(loadGeneratorPrefs()).toBeNull();
+  });
+
+  it('does not overwrite the last good value with a mid-edit length', () => {
+    saveGeneratorPrefs(prefs);
+    saveGeneratorPrefs({ ...prefs, length: 1 });
+    expect(loadGeneratorPrefs()?.length).toBe(24);
+  });
+});
 
 describe('usePasswordGenerator', () => {
   it('generates a password of default length 16', () => {

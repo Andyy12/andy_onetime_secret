@@ -4,7 +4,10 @@
   import { useI18n } from 'vue-i18n';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
-  import { computed, watch } from 'vue';
+  import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
+  import { computed, nextTick, watch } from 'vue';
+
+  import { SECRET_TEMPLATES, buildTemplate, insertTemplate, type SecretTemplate } from './secretTemplates';
 
 const { t } = useI18n();
 
@@ -57,17 +60,21 @@ const { t } = useI18n();
     emit('update:content', newContent);
   });
 
-  const applyTemplate = (type: 'credentials' | 'database' | 'env') => {
-    switch (type) {
-      case 'credentials':
-        content.value = 'Usuario: \nContraseña: \nNotas: ';
-        break;
-      case 'database':
-        content.value = 'DB_HOST=localhost\nDB_PORT=5432\nDB_NAME=\nDB_USER=\nDB_PASSWORD=';
-        break;
-      case 'env':
-        content.value = 'API_KEY=\nAPI_SECRET=\nWEBHOOK_URL=\nACCESS_TOKEN=';
-        break;
+  // Insert a template (appending when the user already typed something) and
+  // put the caret where the first value goes.
+  const applyTemplate = async (template: SecretTemplate) => {
+    const { text, caret } = insertTemplate(
+      content.value,
+      buildTemplate(template, (key) => t(key)),
+      props.maxLength
+    );
+    content.value = text;
+
+    await nextTick();
+    const el = textareaRef.value;
+    if (el) {
+      el.focus();
+      el.setSelectionRange(caret, caret);
     }
   };
 
@@ -76,35 +83,71 @@ const { t } = useI18n();
 
 <template>
   <div class="relative">
-    <!-- Quick templates -->
-    <div class="mb-2.5 flex flex-wrap items-center gap-1.5 text-xs">
-      <span class="font-medium text-gray-500 dark:text-gray-400">
-        {{ t('web.templates.label', 'Plantillas rápidas:') }}
-      </span>
-      <button
-        type="button"
-        @click="applyTemplate('credentials')"
-        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
-        data-testid="template-credentials">
-        <span>👤</span>
-        <span>{{ t('web.templates.credentials', 'Usuario / Clave') }}</span>
-      </button>
-      <button
-        type="button"
-        @click="applyTemplate('database')"
-        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
-        data-testid="template-database">
-        <span>🗄️</span>
-        <span>{{ t('web.templates.database', 'Base de datos') }}</span>
-      </button>
-      <button
-        type="button"
-        @click="applyTemplate('env')"
-        class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
-        data-testid="template-env">
-        <span>⚙️</span>
-        <span>{{ t('web.templates.env', 'Variables .env') }}</span>
-      </button>
+    <!-- Quick templates: one compact menu instead of a row of chips, so the
+         list can grow without pushing the textarea down on mobile. -->
+    <div class="mb-2.5 flex justify-end">
+      <Menu
+        as="div"
+        class="relative inline-block text-left">
+        <MenuButton
+          :disabled="disabled"
+          class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white/80 px-2.5 py-1
+            text-xs font-medium text-gray-700 shadow-2xs transition
+            hover:border-brand-500 hover:text-brand-600
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+            disabled:cursor-not-allowed disabled:opacity-50
+            dark:border-gray-700 dark:bg-slate-800/80 dark:text-gray-300
+            dark:hover:border-brand-400 dark:hover:text-brand-400"
+          data-testid="template-menu-button">
+          <span aria-hidden="true">📋</span>
+          <span>{{ t('web.templates.label') }}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="size-4 text-gray-400"
+            aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd" />
+          </svg>
+        </MenuButton>
+
+        <transition
+          enter-active-class="transition ease-out duration-100"
+          enter-from-class="transform opacity-0 scale-95"
+          enter-to-class="transform opacity-100 scale-100"
+          leave-active-class="transition ease-in duration-75"
+          leave-from-class="transform opacity-100 scale-100"
+          leave-to-class="transform opacity-0 scale-95">
+          <MenuItems
+            class="absolute right-0 z-50 mt-1.5 w-60 origin-top-right rounded-lg bg-white py-1 shadow-lg
+              ring-1 ring-black/5 focus:outline-none
+              dark:bg-slate-800 dark:ring-gray-700/70">
+            <MenuItem
+              v-for="template in SECRET_TEMPLATES"
+              :key="template.id"
+              v-slot="{ active }">
+              <button
+                type="button"
+                :class="[
+                  active
+                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-400/10 dark:text-brand-300'
+                    : 'text-gray-700 dark:text-gray-200',
+                ]"
+                class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm"
+                :data-testid="`template-${template.id}`"
+                @click="applyTemplate(template)">
+                <span
+                  class="w-5 text-center"
+                  aria-hidden="true">{{ template.emoji }}</span>
+                <span>{{ t(`web.templates.${template.id}`) }}</span>
+              </button>
+            </MenuItem>
+          </MenuItems>
+        </transition>
+      </Menu>
     </div>
     <!-- <div
       id="textarea-focus-announcement"

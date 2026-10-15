@@ -20,6 +20,64 @@ export const CHAR_SETS = {
 
 export const AMBIGUOUS_CHARS = new Set(['i', 'l', '1', 'I', 'o', '0', 'O', '|', '`', '\'']);
 
+/** Length bounds offered by the generator UI. */
+export const GENERATOR_MIN_LENGTH = 6;
+export const GENERATOR_MAX_LENGTH = 64;
+
+/**
+ * Per-browser memory of the generator settings (never the password itself).
+ * Stored under a namespaced key; every read is validated because localStorage
+ * is user-editable and may hold stale or foreign data.
+ */
+export const GENERATOR_PREFS_STORAGE_KEY = 'godatalize.passwordGenerator.v1';
+
+export type PasswordGeneratorPrefs = Required<PasswordGeneratorOptions>;
+
+const PREF_FLAGS = ['uppercase', 'lowercase', 'numbers', 'symbols', 'excludeAmbiguous'] as const;
+
+/** Reads saved settings, or null when missing, invalid, or storage is blocked. */
+export function loadGeneratorPrefs(): PasswordGeneratorPrefs | null {
+  try {
+    const raw = localStorage.getItem(GENERATOR_PREFS_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Record<string, unknown>;
+
+    const length = Number(data.length);
+    if (
+      !Number.isInteger(length) ||
+      length < GENERATOR_MIN_LENGTH ||
+      length > GENERATOR_MAX_LENGTH
+    ) {
+      return null;
+    }
+    if (!PREF_FLAGS.every((flag) => typeof data[flag] === 'boolean')) return null;
+
+    return {
+      length,
+      uppercase: data.uppercase as boolean,
+      lowercase: data.lowercase as boolean,
+      numbers: data.numbers as boolean,
+      symbols: data.symbols as boolean,
+      excludeAmbiguous: data.excludeAmbiguous as boolean,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Saves settings; silently skipped when storage is unavailable. */
+export function saveGeneratorPrefs(prefs: PasswordGeneratorPrefs): void {
+  const length = Math.floor(Number(prefs.length));
+  if (!Number.isInteger(length) || length < GENERATOR_MIN_LENGTH || length > GENERATOR_MAX_LENGTH) {
+    return; // mid-edit value (e.g. a cleared number input); keep the last good one
+  }
+  try {
+    localStorage.setItem(GENERATOR_PREFS_STORAGE_KEY, JSON.stringify({ ...prefs, length }));
+  } catch {
+    /* storage blocked (private mode, quota) — the preference is a convenience */
+  }
+}
+
 /**
  * Filter out ambiguous characters from a string if requested.
  */
@@ -77,7 +135,10 @@ export function usePasswordGenerator(initialOptions: PasswordGeneratorOptions = 
   function generate(): string {
     // The number input lets users type below its min="6" (or clear it, which
     // v-model.number turns into ''), so clamp here to the UI's floor of 6.
-    const minLength = Math.max(6, Math.min(128, Math.floor(Number(length.value) || 0)));
+    const minLength = Math.max(
+      GENERATOR_MIN_LENGTH,
+      Math.min(128, Math.floor(Number(length.value) || 0))
+    );
     const activeSets: string[] = [];
 
     if (uppercase.value) {
