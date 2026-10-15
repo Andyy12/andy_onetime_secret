@@ -6,6 +6,7 @@
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useDecryptReveal } from '@/shared/composables/useDecryptReveal';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 

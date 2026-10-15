@@ -47,5 +47,10 @@
 9. **Verificación de Tests**:
    - 41 pruebas unitarias ejecutadas y aprobadas en Vitest (incluyendo tests actualizados de `WorkspaceFooter.spec.ts`).
 
+10. **Documentación Completa**:
+    - Creado [.claude.md](file:///c:/Users/Andres%20Vega/OneDrive%20-%20Omnisalud/Documentos/Dev/PERSONAL/ONE_TIME_SECRET/andy_onetime_secret/.claude.md) con guías de arquitectura, invariantes, flujos y comandos para Claude y agentes.
+    - Creado [CHANGELOG.md](file:///c:/Users/Andres%20Vega/OneDrive%20-%20Omnisalud/Documentos/Dev/PERSONAL/ONE_TIME_SECRET/andy_onetime_secret/CHANGELOG.md) siguiendo Keep a Changelog v1.1.0 detallando la versión 0.27.0.
+    - Creado [SDD.md](file:///c:/Users/Andres%20Vega/OneDrive%20-%20Omnisalud/Documentos/Dev/PERSONAL/ONE_TIME_SECRET/andy_onetime_secret/SDD.md) con especificaciones de diseño de software, modelos matemáticos de entropía, seguridad CSPRNG y diagramas de componentes.
+
 ## Siguientes Pasos Opcionales
 - Preparar commit limpio y desplegar a Easypanel cuando el usuario lo solicite.
