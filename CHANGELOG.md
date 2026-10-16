@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.28.0] - 2026-10-15
+
+### Added
+- **"Send us a secret" on the homepage**: `IncomingCallout.vue` links to the existing `/incoming` form when `INCOMING_ENABLED=true`. Signed-in team members also get "Copy request link" to ask clients for credentials. New bootstrap flag `features.incoming` (`config_serializer.rb#build_feature_flags`, `bootstrap.ts`).
+- **Copy message to send**: `ShareMessageActions.vue` on the receipt builds a ready-to-paste message (link, works once, expiry, "passphrase comes separately") with WhatsApp and email shortcuts. Logic in `shareMessage.ts`.
+- **Receipt countdown**: live "Expires in 6d 23h" from `record.expiration` (`useCountdown.ts`, locale-aware units via `Intl`).
+- **Reveal notification switch** on the create form (`RevealNotifyToggle.vue`) for signed-in users; toggles the existing account preference `notify_on_reveal`.
+- **Quick templates dropdown**: 8 templates (credentials, email, database, `.env`, API, SSH, Wi-Fi, VPN) in a Headless UI menu; catalog in `secretTemplates.ts`.
+- **Password generator memory**: length and character sets saved per browser (never the password).
+- **i18n syntax guard**: `src/tests/i18n/message-syntax.spec.ts` compiles every translation with the intlify compiler.
+- `.env.example`: incoming recipients and Sentry variables (`DIAGNOSTICS_ENABLED`, `SENTRY_DSN`, `SENTRY_SAMPLE_RATE`).
+
+### Changed
+- Footers show **www.godatalize.com** instead of the build version (`v0.0.0-rc0 (dev)`); the version moved to the link tooltip. Constants in `src/shared/constants/brand.ts`.
+- Templates append to existing text instead of replacing it.
+- Hard-coded Spanish UI strings in the generator, QR modal and cURL box moved to i18n (en + es).
+
+### Removed
+- Password strength meter on the reveal form (the recipient types a passphrase they did not choose).
+
+### Fixed
+- **Production crash "Something went wrong" on the homepage**: the translation `Símbolos (!@#$)` contained an unescaped `@` (vue-i18n linked-message syntax). Production builds throw on it. Escaped as `{'@'}`.
+- Password generator could produce 4-character passwords when the length input was set below 6 or cleared; minimum is now 6.
+
+### Notes on 0.27.0
+Some 0.27.0 descriptions did not match the code and are corrected here: the QR modal renders a PNG data URL (not a canvas); the cURL box shows `curl -s "<link>"` (a GET, which does not burn the secret), not `curl -X POST`; the generator emits `update:password`/`change` (there is no `use-password` event); the reveal-form strength checker is now removed.
+
+---
+
 ## [0.27.0] - 2026-10-15
 
 ### Added

@@ -26,6 +26,8 @@
 
   import PasswordGeneratorConfig from '@/shared/components/forms/PasswordGeneratorConfig.vue';
   import PasswordStrengthChecker from '@/shared/components/forms/PasswordStrengthChecker.vue';
+  import RevealNotifyToggle from '@/shared/components/forms/RevealNotifyToggle.vue';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
   export interface Props {
@@ -60,6 +62,7 @@
 
   const router = useRouter();
   const { t } = useI18n();
+  const authStore = useAuthStore();
   const localReceiptStore = useLocalReceiptStore();
   const showProTip = ref(props.withAsterisk);
 
@@ -406,6 +409,11 @@
             v-model="secretTitle"
             :corner-class="cornerClass"
             :disabled="isSubmitting"
+            class="mt-6" />
+
+          <!-- Reveal email notification (account-wide preference) -->
+          <RevealNotifyToggle
+            v-if="authStore.isFullyAuthenticated"
             class="mt-6" />
 
           <!-- Recipient Field -->

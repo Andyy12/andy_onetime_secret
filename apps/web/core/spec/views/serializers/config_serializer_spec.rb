@@ -927,6 +927,22 @@ RSpec.describe Core::Views::ConfigSerializer do
   end
 
   describe '.build_feature_flags' do
+    describe 'incoming flag (canonical /incoming)' do
+      it 'is false when incoming is not configured' do
+        result = described_class.build_feature_flags({ 'features' => {} })
+
+        expect(result['incoming']).to be false
+      end
+
+      it 'mirrors features.incoming.enabled' do
+        view_vars = base_view_vars.merge(
+          'features' => base_view_vars['features'].merge('incoming' => { 'enabled' => true })
+        )
+
+        expect(described_class.build_feature_flags(view_vars)['incoming']).to be true
+      end
+    end
+
     describe 'organizations feature flags' do
       context 'when no organizations config is present' do
         it 'defaults all organization flags to false' do

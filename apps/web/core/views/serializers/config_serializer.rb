@@ -241,6 +241,10 @@ module Core
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
             'restrict_to' => resolve_restrict_to(view_vars),
+            # Install-wide incoming secrets (/incoming) on the CANONICAL domain
+            # (INCOMING_ENABLED). Display-only: lets the homepage link to the
+            # form; the /api/incoming endpoints enforce the flag themselves.
+            'incoming' => features.dig('incoming', 'enabled') == true,
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,

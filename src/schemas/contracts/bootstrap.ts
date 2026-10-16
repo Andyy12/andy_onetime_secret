@@ -293,6 +293,9 @@ export const featuresSchema = z.object({
   // available" notice (#3415); true and undefined (older backends) both
   // keep the auth form.
   signin: z.boolean().optional(),
+  // Canonical-domain incoming secrets (/incoming) are enabled install-wide
+  // (INCOMING_ENABLED). Display gate for the homepage link only.
+  incoming: z.boolean().optional(),
   mfa: z.boolean().optional(),
   lockout: z.boolean().optional(),
   password_requirements: z.boolean().optional(),

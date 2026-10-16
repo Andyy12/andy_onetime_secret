@@ -5,6 +5,7 @@
   import CopyButton from '@/shared/components/ui/CopyButton.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretQrModal from '@/shared/components/ui/SecretQrModal.vue';
+  import ShareMessageActions from './ShareMessageActions.vue';
   import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
   import { ref } from 'vue';
 
@@ -143,6 +144,13 @@
             :text="record.share_url ?? ''" />
         </div>
       </div>
+
+      <!-- Countdown + ready-to-send message -->
+      <ShareMessageActions
+        v-if="!details.show_recipients && record.share_url"
+        :url="record.share_url"
+        :expiration="record.expiration"
+        :has-passphrase="!!details?.has_passphrase" />
 
       <SecretQrModal
         v-if="record.share_url"

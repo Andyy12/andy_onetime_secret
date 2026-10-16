@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import HomepageTaglines from '@/apps/secret/components/conceal/HomepageTaglines.vue';
+  import IncomingCallout from '@/apps/secret/components/conceal/IncomingCallout.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -36,6 +37,9 @@
       :with-generate="true"
       :primary-color="primaryColor"
       :workspace-mode="localReceiptStore.workspaceMode" />
+
+    <!-- "Send us a secret" entry point; renders only when /incoming is enabled -->
+    <IncomingCallout class="mb-10" />
 
     <!-- Space divider -->
     <div class="mb-6"></div>
