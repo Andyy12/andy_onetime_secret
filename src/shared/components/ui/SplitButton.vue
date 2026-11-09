@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+  import { ref, computed, onMounted, onBeforeUnmount, watch, type PropType } from 'vue';
   import { useMagicKeys, whenever } from '@vueuse/core';
 
   const { t } = useI18n();
@@ -26,6 +26,15 @@
     showKeyboardHint: { type: Boolean, default: false },
     /** Optional subtitle shown below button label on small screens */
     subtitle: { type: String, default: '' },
+    /**
+     * Controlled action. When set, the parent owns the choice (e.g. a mode
+     * selector above the form) and the button follows it.
+     */
+    action: { type: String as PropType<ActionType>, default: undefined },
+    /** Show the dropdown toggle. Off when the parent renders its own selector. */
+    showDropdown: { type: Boolean, default: true },
+    /** Stretch the button to the full width of its container on all screens. */
+    fullWidth: { type: Boolean, default: false },
   });
 
   const emit = defineEmits(['update:action']);
@@ -33,7 +42,13 @@
   const isDropdownOpen = ref(false);
   const buttonRef = ref<HTMLElement | null>(null);
   const submitButtonRef = ref<HTMLButtonElement | null>(null);
-  const selectedAction = ref<ActionType>('create-link');
+  const selectedAction = ref<ActionType>(props.action ?? 'create-link');
+  watch(
+    () => props.action,
+    (action) => {
+      if (action) selectedAction.value = action;
+    }
+  );
   const isContentEmpty = computed(() => !props.content.trim());
   const isMainButtonDisabled = computed(() => {
     // Disable the Create Link action when no content
@@ -65,8 +80,13 @@
   // Get the correct equivalent left and right corner classes
   const corners = computed(() => processCornerClass(props.cornerClass));
   const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
-  // Left button focus ring (respects left corner rounding)
-  const leftButtonFocusClass = computed(() => `${corners.value.leftCorner}`);
+  // Left button focus ring (respects left corner rounding). Without the
+  // dropdown toggle the main button stands alone and needs both corners.
+  const leftButtonFocusClass = computed(() =>
+    props.showDropdown
+      ? corners.value.leftCorner
+      : `${corners.value.leftCorner} ${corners.value.rightCorner}`
+  );
 
   // Right button focus ring (respects right corner rounding)
   const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
@@ -131,7 +151,8 @@
 
 <template>
   <div
-    class="relative inline-flex w-full sm:w-auto"
+    class="relative inline-flex w-full"
+    :class="{ 'sm:w-auto': !fullWidth }"
     role="group"
     ref="buttonRef">
     <!-- Visually hidden announcement for screen readers when action changes -->
@@ -222,6 +243,7 @@ ry="2" />
 
     <!-- prettier-ignore-attribute class -->
     <button
+      v-if="showDropdown"
       type="button"
       :class="[
         corners.rightCorner,
@@ -264,7 +286,7 @@ ry="2" />
 
     <!-- prettier-ignore-attribute class -->
     <div
-      v-if="isDropdownOpen"
+      v-if="showDropdown && isDropdownOpen"
       id="split-button-dropdown"
       :class="cornerClass"
       class="absolute right-0 top-full z-10 mt-2 w-52

@@ -164,12 +164,21 @@
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Platform detection for keyboard hint (desktop only)
+  const modeOptions = computed(() => [
+    {
+      value: 'create-link' as const,
+      label: t('web.LABELS.create_link_short'),
+      icon: 'lock-closed',
+    },
+    {
+      value: 'generate-password' as const,
+      label: t('web.COMMON.button_generate_secret_short'),
+      icon: 'key',
+    },
+  ]);
+
+  // Keyboard hint (Ctrl/⌘ Enter) is shown inside the button, desktop only
   const isDesktop = useMediaQuery('(min-width: 640px)');
-  const isMac = computed(() =>
-    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
-  );
-  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
   // Resolve the effective share domain for the form.
   // The domain context composable works for authenticated users but for
@@ -235,6 +244,47 @@
           dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
         <!-- Main Content Section -->
         <div class="p-8">
+          <!--
+            Mode selector: the first choice a visitor makes. It used to live in
+            the submit button's dropdown at the bottom of the card, where it was
+            easy to miss.
+          -->
+          <div
+            v-if="props.withGenerate"
+            role="radiogroup"
+            :aria-label="t('web.LABELS.create_link_short') + ' / ' + t('web.COMMON.button_generate_secret_short')"
+            class="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-gray-200/60 bg-gray-100/70 p-1
+              dark:border-gray-700/60 dark:bg-slate-800/70"
+            data-testid="secret-mode-selector">
+            <button
+              v-for="mode in modeOptions"
+              :key="mode.value"
+              type="button"
+              role="radio"
+              :aria-checked="selectedAction === mode.value"
+              :class="[
+                'flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 font-brand text-sm font-semibold',
+                'transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900',
+                selectedAction === mode.value
+                  ? 'bg-white shadow-sm dark:bg-slate-900'
+                  : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
+              ]"
+              :style="
+                selectedAction === mode.value
+                  ? { color: primaryColor, '--tw-ring-color': primaryColor }
+                  : { '--tw-ring-color': primaryColor }
+              "
+              :data-testid="`secret-mode-${mode.value}`"
+              @click="selectedAction = mode.value">
+              <OIcon
+                collection="heroicons"
+                :name="mode.icon"
+                class="size-4"
+                aria-hidden="true" />
+              {{ mode.label }}
+            </button>
+          </div>
+
           <!-- Secret Input Section -->
           <span v-show="selectedAction === 'create-link'">
             <!--
@@ -462,12 +512,73 @@
                 data-testid="secret-recipient-input" />
             </div>
           </div>
+
+          <!-- Actions: right under the fields, full width, so the main
+               action is not tucked away at the bottom of the card. -->
+          <div class="mt-8">
+            <!-- Domain Context Indicator -->
+            <div
+              v-if="showDomainContext"
+              class="mb-3 flex items-center gap-2 text-sm">
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ t('web.LABELS.creating_links_for') }}
+              </span>
+              <div
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150"
+                :class="
+                  currentContext.isCanonical
+                    ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+                "
+                role="status"
+                :aria-label="
+                  t('web.LABELS.scope_indicator', { domain: currentContext.displayName })
+                "
+                data-testid="secret-domain-context-indicator">
+                <OIcon
+                  collection="heroicons"
+                  :name="currentContext.isCanonical ? 'user-circle' : 'building-office'"
+                  class="size-4"
+                  aria-hidden="true" />
+                <span class="max-w-[180px] truncate">{{ currentContext.displayName }}</span>
+              </div>
+            </div>
+
+            <SplitButton
+              :with-generate="props.withGenerate"
+              :action="selectedAction"
+              :show-dropdown="false"
+              :full-width="true"
+              :corner-class="cornerClass"
+              :primary-color="primaryColor"
+              :button-text-light="buttonTextLight"
+              :disabled="selectedAction === 'create-link' && !hasContent"
+              :disable-generate="selectedAction === 'create-link' && hasContent"
+              :keyboard-shortcut-enabled="true"
+              :show-keyboard-hint="isDesktop"
+              :aria-label="
+                selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
+              "
+              :aria-describedby="
+                selectedAction === 'create-link' ? 'create-link-desc' : 'generate-password-desc'
+              " />
+            <div
+              class="sr-only"
+              id="create-link-desc">
+              Creates a secure link to share your secret
+            </div>
+            <div
+              class="sr-only"
+              id="generate-password-desc">
+              Generates a secure random password
+            </div>
+          </div>
         </div>
 
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="relative flex items-start gap-3 overflow-hidden bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 p-5 backdrop-blur-sm dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
+          class="relative flex items-start gap-3 overflow-hidden rounded-b-lg bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 p-5 backdrop-blur-sm dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
           <!-- Decorative blur orb -->
           <div
             class="pointer-events-none absolute -bottom-8 -right-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl dark:bg-brandcomp-700/30"
@@ -479,84 +590,6 @@
           <p class="relative z-10 text-sm text-brandcomp-700 dark:text-brandcomp-300">
             {{ t('web.homepage.protip1') }}
           </p>
-        </div>
-
-        <div class="border-t border-gray-200/50 dark:border-gray-700/50">
-          <!-- Actions Container -->
-          <div class="p-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <!-- Domain Context Indicator -->
-              <div
-                v-if="showDomainContext"
-                class="order-1 flex items-center gap-2 text-sm sm:order-1">
-                <span class="text-gray-600 dark:text-gray-400">
-                  {{ t('web.LABELS.creating_links_for') }}
-                </span>
-                <div
-                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150"
-                  :class="
-                    currentContext.isCanonical
-                      ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                      : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                  "
-                  role="status"
-                  :aria-label="
-                    t('web.LABELS.scope_indicator', { domain: currentContext.displayName })
-                  "
-                  data-testid="secret-domain-context-indicator">
-                  <OIcon
-                    collection="heroicons"
-                    :name="currentContext.isCanonical ? 'user-circle' : 'building-office'"
-                    class="size-4"
-                    aria-hidden="true" />
-                  <span class="max-w-[180px] truncate">{{ currentContext.displayName }}</span>
-                </div>
-              </div>
-
-              <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 shrink-0 sm:order-2 sm:ml-auto">
-                <div class="mb-0 mt-3 sm:mt-0">
-                  <SplitButton
-                    :with-generate="props.withGenerate"
-                    :corner-class="cornerClass"
-                    :primary-color="primaryColor"
-                    :button-text-light="buttonTextLight"
-                    :disabled="selectedAction === 'create-link' && !hasContent"
-                    :disable-generate="selectedAction === 'create-link' && hasContent"
-                    :keyboard-shortcut-enabled="true"
-                    :show-keyboard-hint="false"
-                    :aria-label="
-                      selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
-                    "
-                    :aria-describedby="
-                      selectedAction === 'create-link'
-                        ? 'create-link-desc'
-                        : 'generate-password-desc'
-                    "
-                    @update:action="selectedAction = $event" />
-                  <div
-                    class="sr-only"
-                    id="create-link-desc">
-                    Creates a secure link to share your secret
-                  </div>
-                  <div
-                    class="sr-only"
-                    id="generate-password-desc">
-                    Generates a secure random password
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Keyboard hint row (desktop only) -->
-            <div
-              v-if="isDesktop"
-              class="mt-3 flex justify-end">
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ shortcutHint }}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </form>

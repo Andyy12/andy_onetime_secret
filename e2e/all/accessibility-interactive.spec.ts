@@ -64,7 +64,7 @@ const THEMES: Theme[] = ['light', 'dark'];
 /**
  * One interactive scenario.
  *  - `scope`: stable baseline-key namespace. NOT a literal URL — it names the
- *    state ("/#split-button-open") so keys stay readable and never collide
+ *    state ("/#generate-password-mode") so keys stay readable and never collide
  *    with the at-rest spec's real-route scopes.
  *  - `drive`: navigate + reach the state, asserting along the way that the
  *    intended DOM actually rendered. A silent no-op here would scan the wrong
@@ -79,21 +79,19 @@ interface Scenario {
 
 const SCENARIOS: Scenario[] = [
   {
-    scope: '/#split-button-open',
-    title: 'split-button dropdown open (home create-secret form)',
+    scope: '/#generate-password-mode',
+    title: 'mode selector on Generate Password (home create-secret form)',
     async drive(page) {
       await page.goto('/');
       await waitForAppReady(page);
 
-      // Open the "more actions" dropdown next to the primary Create Link button.
-      const toggle = page.locator('[data-testid="split-button-dropdown-toggle"]');
-      await expect(toggle).toBeVisible();
-      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-      await toggle.click();
-
-      // The menu is conditionally rendered; scan only once it is present.
-      await expect(page.locator('#split-button-dropdown')).toBeVisible();
-      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      // The home form picks its action with the mode selector at the top of
+      // the card (it replaced the dropdown next to the submit button).
+      const option = page.locator('[data-testid="secret-mode-generate-password"]');
+      await expect(option).toBeVisible();
+      await expect(option).toHaveAttribute('aria-checked', 'false');
+      await option.click();
+      await expect(option).toHaveAttribute('aria-checked', 'true');
     },
   },
   {
