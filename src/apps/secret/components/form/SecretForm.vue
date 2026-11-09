@@ -164,6 +164,39 @@
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
+  // Expiry quick picks. The full list can run to 9+ durations, so the card
+  // shows a few common ones; the complete select lives in the options panel.
+  // The current value always gets a chip, so a pick from that select stays
+  // visible here.
+  const QUICK_TTLS = [3600, 86400, 604800]; // 1 hour, 1 day, 7 days
+  const quickTtlOptions = computed(() => {
+    const options = lifetimeOptions.value;
+    let quick = options.filter((option) => QUICK_TTLS.includes(option.value));
+    if (quick.length < 2) quick = options.slice(-3);
+    const current = options.find((option) => option.value === form.ttl);
+    if (current && !quick.includes(current)) {
+      quick = [...quick, current].sort((a, b) => a.value - b.value);
+    }
+    return quick;
+  });
+
+  // Privacy options panel (passphrase, full expiry list, title, ...).
+  // Starts open when a passphrase is mandatory, and opens itself when one of
+  // its fields fails validation so the error is never hidden.
+  const optionsPanelId = computed(() => `options-${uniqueId.value}`);
+  const showOptions = ref(isPassphraseRequired.value);
+  const optionsHaveError = computed(
+    () => !!getError('passphrase') || !!getError('ttl') || !!getError('recipient')
+  );
+  watch(optionsHaveError, (hasError) => {
+    if (hasError) showOptions.value = true;
+  });
+  watch(isPassphraseRequired, (required) => {
+    if (required) showOptions.value = true;
+  });
+  // Dot on the collapsed toggle when something inside is already set
+  const optionsInUse = computed(() => !!form.passphrase || !!secretTitle.value);
+
   const modeOptions = computed(() => [
     {
       value: 'create-link' as const,
@@ -312,6 +345,76 @@
               @update:password="(val) => (generatedPassword = val)" />
           </div>
 
+          <!-- Expiry quick picks: the one option most people change -->
+          <div
+            v-if="props.withExpiry && quickTtlOptions.length > 0"
+            class="mt-6">
+            <span
+              :id="`${lifetimeId}-quick`"
+              class="mb-2 block font-brand text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
+            </span>
+            <div
+              role="radiogroup"
+              :aria-labelledby="`${lifetimeId}-quick`"
+              class="flex flex-wrap gap-2"
+              data-testid="secret-ttl-quick">
+              <button
+                v-for="option in quickTtlOptions"
+                :key="option.value"
+                type="button"
+                role="radio"
+                :aria-checked="form.ttl === option.value"
+                :class="[
+                  cornerClass,
+                  'border px-4 py-2 text-sm font-medium transition-all duration-200',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900',
+                  form.ttl === option.value
+                    ? 'bg-white shadow-sm dark:bg-slate-900'
+                    : `border-gray-200/60 bg-white/60 text-gray-600 hover:border-gray-300 hover:text-gray-900
+                       dark:border-gray-700/60 dark:bg-slate-800/60 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-white`,
+                ]"
+                :style="
+                  form.ttl === option.value
+                    ? { color: primaryColor, borderColor: primaryColor, '--tw-ring-color': primaryColor }
+                    : { '--tw-ring-color': primaryColor }
+                "
+                :data-testid="`secret-ttl-quick-${option.value}`"
+                @click="updateTtl(option.value)">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Privacy options: collapsed so the common path is paste + create -->
+          <div class="mt-6 border-t border-gray-200/50 pt-4 dark:border-gray-700/50">
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 font-brand text-sm font-medium text-gray-600
+                transition-colors hover:text-gray-900 focus:outline-none focus-visible:underline
+                dark:text-gray-300 dark:hover:text-white"
+              :aria-expanded="showOptions"
+              :aria-controls="optionsPanelId"
+              data-testid="secret-options-toggle"
+              @click="showOptions = !showOptions">
+              <OIcon
+                collection="heroicons"
+                name="chevron-right"
+                :class="['size-4 transition-transform duration-200', showOptions ? 'rotate-90' : '']"
+                aria-hidden="true" />
+              {{ t('web.COMMON.secret_privacy_options') }}
+              <span
+                v-if="!showOptions && optionsInUse"
+                class="size-2 rounded-full"
+                :style="{ backgroundColor: primaryColor }"
+                aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <div
+            v-show="showOptions"
+            :id="optionsPanelId"
+            data-testid="secret-options-panel">
           <!-- Form Controls Section -->
           <div class="mt-6 grid gap-6 md:grid-cols-2 md:items-start">
             <!-- Passphrase Field -->
@@ -512,6 +615,8 @@
                 data-testid="secret-recipient-input" />
             </div>
           </div>
+          </div>
+          <!-- /Privacy options panel -->
 
           <!-- Actions: right under the fields, full width, so the main
                action is not tucked away at the bottom of the card. -->
@@ -562,6 +667,14 @@
               :aria-describedby="
                 selectedAction === 'create-link' ? 'create-link-desc' : 'generate-password-desc'
               " />
+            <!-- Why the button is off: an empty field otherwise reads as broken -->
+            <p
+              v-if="selectedAction === 'create-link' && !hasContent && !isSubmitting"
+              class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400"
+              aria-live="polite"
+              data-testid="secret-create-disabled-hint">
+              {{ t('web.homepage.create_link_disabled_hint') }}
+            </p>
             <div
               class="sr-only"
               id="create-link-desc">
